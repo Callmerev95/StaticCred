@@ -1,7 +1,17 @@
 "use client";
 
 import { useEffect, useId, useRef, useState } from "react";
-import { drawCard, getQrInfo, type DrawCardOpts } from "@/lib/render-card";
+import { drawCard, getQrInfo } from "@/lib/render-card";
+import {
+  assertExportDims,
+  downloadDataUrl,
+  exportDrawOpts,
+  exportFileName,
+  makePdf,
+  pdfSizeMm,
+  QR_PAYLOAD_WARN_LEN,
+  renderOffscreen,
+} from "@/lib/export";
 import {
   BLEED_MM,
   CARD_SIZES,
@@ -22,32 +32,6 @@ interface LivePreviewProps {
   sizeId: SizeId;
   onSizeChange: (size: SizeId) => void;
   onReset: () => void;
-}
-
-function buildDrawOpts(
-  form: CardFormState,
-  qrPayload: string,
-  dims: { widthPx: number; heightPx: number },
-): DrawCardOpts {
-  const t = form.texts;
-  return {
-    widthPx: dims.widthPx,
-    heightPx: dims.heightPx,
-    businessName: form.businessName,
-    qrPayload,
-    cardTheme: form.cardTheme,
-    showStars: form.showStars,
-    showNfc: form.showNfc,
-    showSerial: form.showSerial,
-    cardId: form.cardId,
-    bleed: form.bleed,
-    texts: {
-      ...(t.title ? { title: t.title } : {}),
-      ...(t.badge ? { badge: t.badge } : {}),
-      ...(t.cta ? { cta: t.cta } : {}),
-      ...(t.subCta ? { subCta: t.subCta } : {}),
-    },
-  };
 }
 
 export default function LivePreview({
@@ -80,7 +64,7 @@ export default function LivePreview({
         const ctx = canvas.getContext("2d");
         if (!ctx) throw new Error("Canvas 2D tidak tersedia di browser ini.");
         ctx.imageSmoothingQuality = "high";
-        drawCard(ctx, buildDrawOpts(form, qrPayload, dims));
+        drawCard(ctx, exportDrawOpts(form, qrPayload, dims));
         setRenderError(null);
       } catch (e) {
         setRenderError(
@@ -124,17 +108,30 @@ export default function LivePreview({
   };
 
   const downloadPng = () => {
-    const canvas = document.createElement("canvas");
-    canvas.width = dims.widthPx;
-    canvas.height = dims.heightPx;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-    // TODO(#7): verifikasi dimensi byte + PDF presisi mm.
-    drawCard(ctx, buildDrawOpts(form, qrPayload, dims));
-    const a = document.createElement("a");
-    a.href = canvas.toDataURL("image/png");
-    a.download = `staticcred-${sizeId}${form.bleed ? "-bleed" : ""}.png`;
-    a.click();
+    const canvas = renderOffscreen(exportDrawOpts(form, qrPayload, dims));
+    assertExportDims(size, form.bleed, canvas);
+    downloadDataUrl(
+      canvas.toDataURL("image/png"),
+      exportFileName(sizeId, form.cardTheme, form.bleed, "png"),
+    );
+  };
+
+  const [pdfBusy, setPdfBusy] = useState(false);
+
+  const downloadPdf = () => {
+    setPdfBusy(true);
+    try {
+      const canvas = renderOffscreen(exportDrawOpts(form, qrPayload, dims));
+      assertExportDims(size, form.bleed, canvas);
+      const page = pdfSizeMm(size, form.bleed);
+      makePdf(
+        canvas.toDataURL("image/png"),
+        page.widthMm,
+        page.heightMm,
+      ).save(exportFileName(sizeId, form.cardTheme, form.bleed, "pdf"));
+    } finally {
+      setPdfBusy(false);
+    }
   };
 
   const canvasStyle =
@@ -206,13 +203,13 @@ export default function LivePreview({
         </div>
       </div>
 
-      {qrInfo?.tooDense && (
+      {qrInfo && (qrInfo.tooDense || qrPayload.length > QR_PAYLOAD_WARN_LEN) && (
         <p
           role="alert"
           className="rounded-2xl border border-hairline bg-canvas px-4 py-3 text-sm text-ink"
         >
-          QR versi {qrInfo.version}, payload padat. Hasil cetak mungkin sulit
-          dipindai, pendekkan link bila bisa.
+          QR versi {qrInfo.version} dari payload {qrPayload.length} karakter,
+          cetak 1:1 mungkin sulit dipindai. Pendekkan link bila bisa.
         </p>
       )}
 
@@ -275,11 +272,11 @@ export default function LivePreview({
         </button>
         <button
           type="button"
-          disabled
-          title="PDF presisi mm menyusul di tiket #7"
-          className="min-h-12 cursor-not-allowed rounded-full border border-hairline px-5 text-sm font-semibold text-mid-gray"
+          disabled={!hasPayload || pdfBusy}
+          onClick={downloadPdf}
+          className="min-h-12 rounded-full border border-hairline px-5 text-sm font-semibold text-ink transition-opacity focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-40"
         >
-          Download PDF (segera)
+          {pdfBusy ? "Menyiapkan PDF…" : "Download PDF (Ukuran mm Presisi)"}
         </button>
       </div>
 
