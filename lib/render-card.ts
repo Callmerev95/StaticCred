@@ -113,6 +113,41 @@ function drawStar(
   ctx.fill();
 }
 
+// Badge G multicolor official untuk tema google. Empat busur + bilah biru,
+// digambar vector agar tajam di 300 DPI. Lihat DESIGN.md § Card Themes.
+export const GOOGLE_G_COLORS = {
+  blue: "#4285F4",
+  red: "#EA4335",
+  yellow: "#FBBC05",
+  green: "#34A853",
+} as const;
+
+export function drawGoogleG(
+  ctx: CanvasRenderingContext2D,
+  cx: number,
+  cy: number,
+  r: number,
+): void {
+  const rr = r * 0.62;
+  ctx.lineWidth = Math.max(1, Math.round(r * 0.4));
+  ctx.lineCap = "butt";
+  const arcs: Array<[number, number, string]> = [
+    [-0.28 * Math.PI, 0.28 * Math.PI, GOOGLE_G_COLORS.blue],
+    [0.28 * Math.PI, 0.72 * Math.PI, GOOGLE_G_COLORS.green],
+    [0.72 * Math.PI, 0.86 * Math.PI, GOOGLE_G_COLORS.yellow],
+    [0.86 * Math.PI, 1.72 * Math.PI, GOOGLE_G_COLORS.red],
+  ];
+  for (const [start, end, color] of arcs) {
+    ctx.strokeStyle = color;
+    ctx.beginPath();
+    ctx.arc(cx, cy, rr, start, end);
+    ctx.stroke();
+  }
+  ctx.fillStyle = GOOGLE_G_COLORS.blue;
+  const lw = ctx.lineWidth;
+  ctx.fillRect(cx - lw * 0.1, cy - lw / 2, rr + lw * 0.6, lw);
+}
+
 // Ikon gelombang tap: tiga busur + titik, digambar vector.
 function drawTapGlyph(
   ctx: CanvasRenderingContext2D,
@@ -310,11 +345,15 @@ export function drawCard(
   ctx.beginPath();
   ctx.arc(left + badgeD / 2, headerCy, badgeD / 2, 0, Math.PI * 2);
   ctx.fill();
-  ctx.fillStyle = theme.badgeG;
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  setFont(ctx, 700, Math.round(badgeD * 0.58));
-  ctx.fillText("G", left + badgeD / 2, headerCy + badgeD * 0.04);
+  if (theme.id === "google") {
+    drawGoogleG(ctx, left + badgeD / 2, headerCy, badgeD / 2);
+  } else {
+    ctx.fillStyle = theme.badgeG;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    setFont(ctx, 700, Math.round(badgeD * 0.58));
+    ctx.fillText("G", left + badgeD / 2, headerCy + badgeD * 0.04);
+  }
 
   ctx.fillStyle = theme.heading;
   ctx.textAlign = "left";

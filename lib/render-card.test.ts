@@ -4,7 +4,7 @@ import {
   contrastRatio,
   getCardTheme,
 } from "./card-themes";
-import { drawCard, getQrInfo, type DrawCardOpts } from "./render-card";
+import { drawCard, drawGoogleG, getQrInfo, type DrawCardOpts } from "./render-card";
 import { CARD_SIZES, exportDims } from "./sizes";
 
 interface Call {
@@ -96,6 +96,30 @@ describe("getQrInfo", () => {
   it("menandai tooDense saat versi di atas 10", () => {
     const info = getQrInfo(`https://app.example/review?placeid=${"x".repeat(400)}`);
     expect(info.tooDense).toBe(true);
+  });
+});
+
+describe("drawGoogleG", () => {
+  it("memakai empat warna official tanpa teks", () => {
+    const { ctx, calls, props } = createMockCtx();
+    drawGoogleG(ctx, 50, 50, 24);
+    const strokes = calls.filter((c) => c.method === "stroke");
+    expect(strokes.length).toBe(4);
+    expect(props["strokeStyle"]).toBeDefined();
+    expect(
+      calls.some((c) => c.method === "fillText"),
+    ).toBe(false);
+  });
+
+  it("dipakai badge tema google, bukan tema dark", () => {
+    const g = createMockCtx();
+    drawCard(g.ctx, { ...BASE_OPTS, cardTheme: "google" });
+    const d = createMockCtx();
+    drawCard(d.ctx, { ...BASE_OPTS, cardTheme: "dark" });
+    const gTexts = textsOf(g.calls);
+    const dTexts = textsOf(d.calls);
+    expect(gTexts).not.toContain("G");
+    expect(dTexts).toContain("G");
   });
 });
 

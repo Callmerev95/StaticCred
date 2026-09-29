@@ -10614,12 +10614,85 @@ exports[`drawCard > snapshot calls per tema 2`] = `
     "method": "fill",
   },
   {
+    "args": [],
+    "method": "beginPath",
+  },
+  {
     "args": [
-      "G",
       82.5,
-      84.62,
+      82.5,
+      16.43,
+      -0.8796459430051422,
+      0.8796459430051422,
     ],
-    "method": "fillText",
+    "method": "arc",
+  },
+  {
+    "args": [],
+    "method": "stroke",
+  },
+  {
+    "args": [],
+    "method": "beginPath",
+  },
+  {
+    "args": [
+      82.5,
+      82.5,
+      16.43,
+      0.8796459430051422,
+      2.261946710584651,
+    ],
+    "method": "arc",
+  },
+  {
+    "args": [],
+    "method": "stroke",
+  },
+  {
+    "args": [],
+    "method": "beginPath",
+  },
+  {
+    "args": [
+      82.5,
+      82.5,
+      16.43,
+      2.261946710584651,
+      2.701769682087222,
+    ],
+    "method": "arc",
+  },
+  {
+    "args": [],
+    "method": "stroke",
+  },
+  {
+    "args": [],
+    "method": "beginPath",
+  },
+  {
+    "args": [
+      82.5,
+      82.5,
+      16.43,
+      2.701769682087222,
+      5.403539364174444,
+    ],
+    "method": "arc",
+  },
+  {
+    "args": [],
+    "method": "stroke",
+  },
+  {
+    "args": [
+      81.4,
+      77,
+      23.03,
+      11,
+    ],
+    "method": "fillRect",
   },
   {
     "args": [
