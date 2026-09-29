@@ -53,7 +53,7 @@ function Toggle({
   icon: React.ReactNode;
 }) {
   return (
-    <label className="min-h-11 flex cursor-pointer items-center gap-2 rounded-2xl border border-hairline bg-paper px-3 py-2 text-sm font-medium text-ink transition-colors has-checked:border-ink has-checked:bg-surface-alt has-focus-visible:ring-2 has-focus-visible:ring-ink has-focus-visible:ring-offset-2">
+    <label className="min-h-11 flex cursor-pointer items-center gap-1.5 rounded-2xl border border-hairline bg-paper px-2.5 py-2 text-ink transition-colors has-checked:border-ink has-checked:bg-surface-alt has-focus-visible:ring-2 has-focus-visible:ring-ink has-focus-visible:ring-offset-2">
       <input
         type="checkbox"
         className="sr-only"
@@ -62,14 +62,16 @@ function Toggle({
       />
       <span
         aria-hidden="true"
-        className={`flex h-5 w-5 items-center justify-center rounded-md border text-xs ${
+        className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-md border text-xs ${
           checked ? "border-ink bg-ink text-paper" : "border-hairline bg-paper"
         }`}
       >
         {checked ? "✓" : ""}
       </span>
-      {icon}
-      {label}
+      <span aria-hidden="true" className="shrink-0">
+        {icon}
+      </span>
+      <span className="text-[13px] leading-snug font-medium">{label}</span>
     </label>
   );
 }
@@ -357,7 +359,7 @@ export default function BusinessForm({ state, onChange, appUrl }: BusinessFormPr
         <p className="mb-3 font-mono text-xs font-medium tracking-widest text-ink uppercase">
           Pengaturan tampilan
         </p>
-        <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-2">
           <Toggle
             label="5 Bintang"
             checked={state.showStars}
