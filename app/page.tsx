@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import BusinessForm from "@/components/BusinessForm";
 import LivePreview from "@/components/LivePreview";
+import ThemeToggle from "@/components/ThemeToggle";
 import {
   defaultCardFormState,
   QR_DEBOUNCE_MS,
@@ -26,9 +27,12 @@ export default function Home() {
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-6xl flex-col gap-6 px-4 py-8 sm:px-6">
       <div className="flex flex-col gap-2">
-        <p className="w-fit rounded-full border border-hairline bg-paper px-3 py-1 font-mono text-xs text-mid-gray">
-          Zero backend · 300 DPI · Canvas native
-        </p>
+        <div className="flex items-start justify-between gap-3">
+          <p className="w-fit rounded-full border border-hairline bg-paper px-3 py-1 font-mono text-xs text-mid-gray">
+            Zero backend · 300 DPI · Canvas native
+          </p>
+          <ThemeToggle />
+        </div>
         <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
           StaticCred Review Card Printer
         </h1>
