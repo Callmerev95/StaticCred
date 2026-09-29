@@ -146,16 +146,13 @@ export default function BusinessForm({ state, onChange, appUrl }: BusinessFormPr
               tabIndex={selected ? 0 : -1}
               onClick={() => selectMode(m.id)}
               className={`min-h-11 rounded-full px-4 text-sm font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-ink focus-visible:outline-none ${
-                selected ? "bg-ink text-paper shadow-sm" : "text-mid-gray"
+                selected ? "bg-ink text-paper shadow-sm" : "text-deep-gray"
               }`}
             >
               {m.label}
             </button>
           );
         })}
-        <span className="sr-only" aria-live="polite">
-          {MODES[activeIndex]?.label}
-        </span>
       </div>
 
       <div id={`${uid}-panel`} role="tabpanel" aria-live="polite">
@@ -235,7 +232,7 @@ export default function BusinessForm({ state, onChange, appUrl }: BusinessFormPr
               <p className="font-mono text-xs font-semibold tracking-widest text-ink uppercase">
                 Kartu kosong (aktivasi nanti)
               </p>
-              <p className="mt-1 text-sm text-mid-gray">
+              <p className="mt-1 text-sm text-deep-gray">
                 Cetak kartu dulu tanpa nama toko. Pembeli tinggal scan QR untuk
                 pasang link tokonya sendiri.
               </p>
@@ -289,7 +286,7 @@ export default function BusinessForm({ state, onChange, appUrl }: BusinessFormPr
               <p className="font-mono text-xs font-semibold tracking-widest text-ink uppercase">
                 Siap untuk stok jualan
               </p>
-              <p className="mt-1 text-sm text-mid-gray">
+              <p className="mt-1 text-sm text-deep-gray">
                 Kartu dicetak tanpa nama toko. Cocok untuk stok yang dijual ke
                 berbagai tempat.
               </p>
@@ -410,7 +407,7 @@ export default function BusinessForm({ state, onChange, appUrl }: BusinessFormPr
               <label
                 key={id}
                 className={`flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-full px-4 text-sm font-semibold transition-colors has-focus-visible:ring-2 has-focus-visible:ring-ink has-focus-visible:outline-none ${
-                  checked ? "bg-ink text-paper shadow-sm" : "text-mid-gray"
+                  checked ? "bg-ink text-paper shadow-sm" : "text-deep-gray"
                 }`}
               >
                 <input

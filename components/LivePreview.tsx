@@ -149,12 +149,12 @@ export default function LivePreview({
           Live Canvas Preview
         </h2>
         <div className="flex flex-wrap items-center gap-2">
-          <span className="rounded-full border border-hairline bg-canvas px-3 py-1 font-mono text-xs text-mid-gray">
+          <span className="rounded-full border border-hairline bg-canvas px-3 py-1 font-mono text-xs text-deep-gray">
             {dimensionBadge(size)}
           </span>
           <span
             aria-hidden="true"
-            className="rounded-full border border-hairline bg-canvas px-3 py-1 font-mono text-xs text-mid-gray"
+            className="rounded-full border border-hairline bg-canvas px-3 py-1 font-mono text-xs text-deep-gray"
           >
             300 DPI
           </span>
@@ -194,7 +194,7 @@ export default function LivePreview({
               aria-pressed={zoom === z}
               onClick={() => setZoom(z)}
               className={`min-h-9 rounded-full px-3 font-mono text-xs font-semibold focus-visible:ring-2 focus-visible:ring-ink focus-visible:outline-none ${
-                zoom === z ? "bg-ink text-paper" : "text-mid-gray"
+                zoom === z ? "bg-ink text-paper" : "text-deep-gray"
               }`}
             >
               {z === "fit" ? "Fit" : `${z}%`}

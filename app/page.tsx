@@ -32,7 +32,7 @@ export default function Home() {
         <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
           StaticCred Review Card Printer
         </h1>
-        <p className="max-w-xl text-sm leading-relaxed text-mid-gray">
+        <p className="max-w-xl text-sm leading-relaxed text-deep-gray">
           Paste link review Google / TripAdvisor, atur kartu di live preview,
           lalu download PNG atau PDF siap cetak.
         </p>
