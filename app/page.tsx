@@ -1,5 +1,5 @@
 const steps = [
-  "Pilih ukuran — PVC, Standee A6/A7, Stiker 70×70",
+  "Pilih ukuran: PVC, Standee A6/A7, Stiker 70×70",
   "Isi link review + nama usaha (Link Langsung / Cetak Kosong)",
   "Atur teks & tampilan, pilih Tema Kartu",
   "Download PNG / PDF 300 DPI siap cetak",
@@ -17,7 +17,7 @@ export default function Home() {
         </h1>
         <p className="max-w-xl text-sm leading-relaxed text-mid-gray">
           Paste link review Google / TripAdvisor, atur kartu di live preview,
-          lalu download PNG atau PDF siap cetak. Scaffold awal — alur penuh
+          lalu download PNG atau PDF siap cetak. Scaffold awal, alur penuh
           menyusul di tiket #2–#7.
         </p>
       </div>

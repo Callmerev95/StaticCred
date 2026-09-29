@@ -1,4 +1,4 @@
-# StaticCred — Review Card Printer
+# StaticCred - Review Card Printer
 
 Tools web untuk mencetak kartu / standee / stiker ajakan review Google & TripAdvisor. Paste link → live preview → download PNG + PDF siap cetak 300 DPI. Zero backend, render penuh di browser via Canvas API.
 

@@ -13,9 +13,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "StaticCred — Review Card Printer",
+  title: "StaticCred - Review Card Printer",
   description:
-    "Cetak kartu review Google/TripAdvisor siap cetak 300 DPI, langsung di browser.",
+    "Kartu review Google/TripAdvisor 300 DPI, dibuat langsung di browser.",
 };
 
 export default function RootLayout({
