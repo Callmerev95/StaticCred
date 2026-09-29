@@ -1,4 +1,4 @@
-# PRD — StaticCred Review Card Printer
+# PRD - StaticCred Review Card Printer
 
 ## 1. Ringkasan
 Tools web untuk UMKM mencetak kartu / standee / stiker ajakan review Google & TripAdvisor. Paste link → live preview → download PNG + PDF siap cetak 300 DPI. Zero backend, 100% render di browser via Canvas API.
@@ -14,11 +14,11 @@ Referensi UI: `reference/input-QR.png`, `reference/input-QR-kosong.png`, `refere
 - 5 varian ukuran (mm, 300 DPI):
   | Varian | mm | px @300DPI | +bleed 3mm/sisi |
   |---|---|---|---|
-  | PVC Horizontal | 85.6×54 | 1011×638 | 1081×709 |
-  | PVC Vertikal | 54×85.6 | 638×1011 | 709×1081 |
+  | PVC Horizontal | 85.6×54 | 1011×638 | 1082×709 |
+  | PVC Vertikal | 54×85.6 | 638×1011 | 709×1082 |
   | Standee A6 | 105×148 | 1240×1748 | 1311×1819 |
   | Standee A7 | 74×105 | 874×1240 | 945×1311 |
-  | Stiker Kasir | 70×70 | 827×827 | 897×897 |
+  | Stiker Kasir | 70×70 | 827×827 | 898×898 |
 - Mode QR ganda: `Link Langsung` (QR = URL review asli) dan `Cetak Kosong` (QR = pola `https://<app>/r/G-XXXX`, ID kartu `G-` + 4 base32, tombol ID Baru + Buka Link).
 - Form: link review (Google Maps `writereview?placeid=` + TripAdvisor, paste bebas V1), nama usaha (max 60 char + counter), collapsible Ubah Teks Kartu (Judul, Badge, CTA), toggle: 5 Bintang, Ikon NFC, Serial ID, Bleed.
 - Live preview WYSIWYG + toggle: 5 Bintang, Ikon NFC, Serial ID, Bleed (3 mm + crop marks). Layout mengikuti `reference/stitch-reference.png`: badge dimensi dinamis, kontrol zoom 75%/100%/Fit (CSS scale), dotted background, footer `Output Piksel` + `Salin Ringkasan` + `Reset Form`.
@@ -27,7 +27,7 @@ Referensi UI: `reference/input-QR.png`, `reference/input-QR-kosong.png`, `refere
 - Stack: Next.js (App Router) + TypeScript + Canvas native + Tailwind. Deploy Vercel.
 
 ### Keluar (non-goals V1)
-- Aktivasi dinamis `/r/:id` (butuh backend/KV — V1 hanya pola URL placeholder, lihat ADR-0003).
+- Aktivasi dinamis `/r/:id` (butuh backend/KV, V1 hanya pola URL placeholder, lihat ADR-0003).
 - Fetch/validasi Place ID via Google API, scraping TripAdvisor.
 - Editor drag-and-drop, multi-bahasa, auth, pembayaran.
 
@@ -41,7 +41,7 @@ Referensi UI: `reference/input-QR.png`, `reference/input-QR-kosong.png`, `refere
 - [ ] Toggle 5 Bintang / NFC / Serial / Bleed tampil-sembunyi real-time di preview maupun export.
 - [ ] PNG diekspor pada resolusi tabel §3 persis (byte-check dimensi).
 - [ ] PDF berukuran mm persis per varian (boleh dicek di Acrobat preflight).
-- [ ] Tidak ada request network selain navigasi/CDN — verified via DevTools offline.
+- [ ] Tidak ada request network selain navigasi/CDN, verified via DevTools offline.
 - [ ] Toggle Tema Aplikasi light/dark tidak mengubah satu piksel output PNG (render export di kedua tema, hash sama).
 - [ ] Kedua Tema Kartu lolos kontras teks dan QR terbaca pemindai pada cetak 1:1.
 - [ ] Zoom 75/100/Fit hanya CSS scale; badge dimensi + footer piksel selalu cocok tabel PRD.
