@@ -193,6 +193,41 @@ Text or icon in #e7000b against the monochromatic palette. The red is the only c
 - **Button (filled):** `none — relies on tonal contrast, not shadow`
 - **Input (focus):** `1px solid #e5e5e5 ring, no offset shadow`
 
+## Dark Theme (App)
+
+Mirror of the light system for app chrome only (form, panels, buttons). Never affects print pixels. Toggle via `next-themes` (`attribute="class"`, `defaultTheme="system"`), all colors through CSS vars, Tailwind `darkMode: 'class'`.
+
+| Name | Value | Token | Role |
+|------|-------|-------|------|
+| Canvas | `#0a0a0a` | `--color-canvas-dark` | Page background |
+| Panel | `#171717` | `--color-panel-dark` | Card/panel surfaces |
+| Surface Alt | `#262626` | `--color-surface-alt-dark` | Sidebar, input resting state |
+| Ink | `#fafafa` | `--color-ink-dark` | Primary text |
+| Muted | `#a3a3a3` | `--color-muted-dark` | Secondary text, placeholders |
+| Hairline | `rgba(255,255,255,0.08)` | `--color-hairline-dark` | Borders, card edges |
+| Filled action | `#fafafa` (text `#0a0a0a`) | — | Primary button, inverted vs light |
+| Destructive | `#e7000b` | `--color-ember` | Same as light, errors only |
+
+Rules: radius 18px interactive / 24px containers unchanged; preview dot-grid background re-tinted per app theme; card canvas draws its own pixels and ignores app theme.
+
+## Card Themes (Print — Canvas tokens, not CSS)
+
+Independent axis from app theme. Passed as `cardTheme` into `drawCard(ctx, {...})`. Two themes only. Default: `dark`.
+
+### `dark` — hitam elegan (default, see `reference/stitch-reference.png`)
+- bg `#0a0a0a`, heading `#fafafa`, body `#d4d4d4`, muted `#a3a3a3`
+- stars gold `#FBBC04`, pill (TAP NFC) translucent white bg + `#fafafa` text
+- QR: black modules on white rounded box + quiet zone ≥4 modules, caption `ECC-H • 4 MOD`
+- footer CTA `#fafafa`, serial `G-XXXX` muted
+
+### `google` — putih bersih official
+- bg `#ffffff`, heading `#0a0a0a`, body `#444746`, muted `#5f6368`
+- badge "G" multicolor official, stars `#FBBC04`
+- QR: black modules directly on white (no box), quiet zone ≥4 modules
+- CTA filled `#0a0a0a` pill, serial `G-XXXX` muted
+
+QR contrast rule (both themes): dark modules on light field, always. Never white-on-black QR. ECC level H always.
+
 ## Imagery
 
 Minimal imagery — the system is almost entirely UI. No hero photography, no illustrations, no decorative graphics. Product showcases are rendered as component mockups (cards, inputs, buttons) in a grid, serving as both documentation and visual content. Icons are thin-stroke geometric marks (likely Lucide-derived) at 1.5–2px stroke weight in #0a0a0a or #737373, used sparingly as functional cues. The visual language IS the UI components themselves — the page functions as a living style guide where every visible element is a design token made visible.

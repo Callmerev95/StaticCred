@@ -21,7 +21,8 @@ Referensi UI: `reference/input-QR.png`, `reference/input-QR-kosong.png`, `refere
   | Stiker Kasir | 70×70 | 827×827 | 897×897 |
 - Mode QR ganda: `Link Langsung` (QR = URL review asli) dan `Cetak Kosong` (QR = pola `https://<app>/r/G-XXXX`, ID kartu `G-` + 4 base32, tombol ID Baru + Buka Link).
 - Form: link review (Google Maps `writereview?placeid=` + TripAdvisor, paste bebas V1), nama usaha (max 60 char + counter), collapsible Ubah Teks Kartu (Judul, Badge, CTA), toggle: 5 Bintang, Ikon NFC, Serial ID, Bleed.
-- Live preview + badge ukuran + badge 300 DPI, mengikuti referensi (kartu hitam, header GOOGLE REVIEW + TAP NFC, bintang 5.0, QR putih rounded, CTA SCAN ATAU TAP DI SINI).
+- Live preview WYSIWYG + toggle: 5 Bintang, Ikon NFC, Serial ID, Bleed (3 mm + crop marks). Layout mengikuti `reference/stitch-reference.png`: badge dimensi dinamis, kontrol zoom 75%/100%/Fit (CSS scale), dotted background, footer `Output Piksel` + `Salin Ringkasan` + `Reset Form`.
+- Tema ganda independen: Tema Aplikasi (light/dark, system + toggle) hanya untuk chrome; Tema Kartu (`dark` default / `google` official) untuk hasil cetak via segmen kontrol. Spesifikasi: `DESIGN.md` § Dark Theme + § Card Themes.
 - Export: PNG dimensi piksel tepat + PDF ukuran mm tepat (embed PNG, bukan raster ulang).
 - Stack: Next.js (App Router) + TypeScript + Canvas native + Tailwind. Deploy Vercel.
 
@@ -41,6 +42,10 @@ Referensi UI: `reference/input-QR.png`, `reference/input-QR-kosong.png`, `refere
 - [ ] PNG diekspor pada resolusi tabel §3 persis (byte-check dimensi).
 - [ ] PDF berukuran mm persis per varian (boleh dicek di Acrobat preflight).
 - [ ] Tidak ada request network selain navigasi/CDN — verified via DevTools offline.
+- [ ] Toggle Tema Aplikasi light/dark tidak mengubah satu piksel output PNG (render export di kedua tema, hash sama).
+- [ ] Kedua Tema Kartu lolos kontras teks dan QR terbaca pemindai pada cetak 1:1.
+- [ ] Zoom 75/100/Fit hanya CSS scale; badge dimensi + footer piksel selalu cocok tabel PRD.
+- [ ] Ganti Tema Kartu dark/google <300ms di preview maupun export.
 - [ ] Lighthouse performance ≥90 di desktop.
 
 ## 6. Risiko teknis

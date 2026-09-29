@@ -6,7 +6,9 @@ Single-context. Baca file ini + `docs/adr/` sebelum mengerjakan kode.
 - **Kartu review**: artefak cetak berisi QR menuju form ulasan. Jangan sebut "flyer"/"banner".
 - **Link Langsung**: mode QR berisi URL review asli (`search.google.com/local/writereview?placeid=…` atau URL TripAdvisor). Lawan dari Cetak Kosong.
 - **Cetak Kosong**: mode kartu tanpa nama toko, QR berpola `https://<app>/r/G-XXXX`. Untuk stok reseller.
-- **ID Kartu**: `G-` + 4 char base32 Crockford tanpa I/L/O/U (contoh `G-0NUJ`). Tampil hanya jika toggle Serial ID on (atau selalu di panel, opsional di kartu).
+- **Tema Aplikasi**: `light` / `dark` untuk chrome app (form, panel, tombol). Default ikut OS, toggle di header, persist `localStorage`. Tidak boleh memengaruhi satu piksel pun output cetak. Jangan sebut "darkmode" satu kata — selalu "Tema Aplikasi".
+- **Tema Kartu**: `dark` (default, hitam elegan) / `google` (putih bersih official) untuk hasil cetak. Dipilih per kartu via segmen kontrol, masuk ke `drawCard` sebagai `cardTheme`, dipakai preview + export. Independen dari Tema Aplikasi. Jangan campur istilah keduanya.
+- **Serial**: satu ID `G-XXXX` di semua tempat (panel Cetak Kosong, QR blank, serial di kartu). `#SC-2025-0814` di stitch hanya ilustrasi mockup, bukan format.
 - **Bleed**: tambahan 3 mm tiap sisi untuk area potong. Toggle Bleed menambah canvas + crop marks.
 - **DPI**: selalu 300 untuk export. Preview boleh downscale, export tidak.
 - **ECC**: error correction QR, selalu level H (30% toleransi rusak).
@@ -22,6 +24,8 @@ Single-context. Baca file ini + `docs/adr/` sebelum mengerjakan kode.
 - Yang dihindari: menyebut ID-1/ID-2/ID-3 ISO (produk memakai ukuran custom di atas, bukan ISO 7810 murni), menyimpan link di server, mengecilkan QR di bawah versi yang masih terbaca (beri warning jika payload > ~200 char).
 
 ## Referensi visual
+- `reference/stitch-reference.png` — ACUAN UTAMA layout live preview + kartu (gantikan `live-preview.png`).
+- `reference/live-preview.png` — arsip (tema kartu dark versi lama).
 - `reference/input-QR.png` — form Link Langsung.
 - `reference/input-QR-kosong.png` — form Cetak Kosong.
-- `reference/live-preview.png` — kartu + tombol download.
+- `DESIGN.md` — token light + Dark Theme (app) + Card Themes (cetak).
