@@ -24,6 +24,7 @@ export interface CardTheme {
   qrBoxBorder: string | null;
   ctaBg: string | null;
   ctaFg: string;
+  ctaInBox: string;
   ctaOutline: boolean;
 }
 
@@ -50,6 +51,7 @@ export const CARD_THEMES: Record<CardThemeId, CardTheme> = {
     qrBoxBorder: null,
     ctaBg: null,
     ctaFg: "#a3a3a3",
+    ctaInBox: "#a3a3a3",
     ctaOutline: true,
   },
   google: {
@@ -72,6 +74,7 @@ export const CARD_THEMES: Record<CardThemeId, CardTheme> = {
     qrBoxBorder: "#e5e5e5",
     ctaBg: "#3871E0",
     ctaFg: "#ffffff",
+    ctaInBox: "#3871E0",
     ctaOutline: false,
   },
 };

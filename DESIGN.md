@@ -217,9 +217,9 @@ Independent axis from app theme. Passed as `cardTheme` into `drawCard(ctx, {...}
 Shared rules (both themes):
 - Card radius `0.07 × min-dimensi`.
 - Header: badge G + label kiri, pill TAP NFC kanan berisi ikon wifi + teks, center eksak satu sumbu.
-- QR selalu box putih + modul center + quiet zone ≥4 modul, tanpa caption. ECC H, modul gelap di bidang terang, selalu.
-- pvc-h (landscape): dua kolom, CTA teks di bawah QR, footer garis + serial.
-- Portrait + persegi: kolom tengah (nama, stars, QR box 0.56 lebar kartu, pill CTA, sub-caption, serial tengah-bawah bila aktif).
+- QR selalu box putih + modul center + quiet zone ≥4 modul, tanpa caption. ECC H, modul gelap di bidang terang, selalu. CTA teks di dalam box pas di bawah QR, selebar QR (google biru `#3871E0`, dark muted); font proporsional modul.
+- pvc-h (landscape): dua kolom, footer garis + serial.
+- Portrait + persegi: kolom tengah (nama, stars, QR box 0.56 lebar kartu, sub-caption, serial tengah-bawah bila aktif). Tanpa pill CTA standalone.
 
 ### `dark` — hitam elegan (default)
 - bg `#0a0a0a`, heading `#fafafa`, body `#d4d4d4`, muted `#a3a3a3`

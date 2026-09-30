@@ -317,14 +317,14 @@ exports[`drawCard > snapshot calls per tema 1`] = `
   },
   {
     "args": [
-      687,
+      692,
       144,
     ],
     "method": "moveTo",
   },
   {
     "args": [
-      928,
+      923,
       144,
     ],
     "method": "lineTo",
@@ -334,49 +334,49 @@ exports[`drawCard > snapshot calls per tema 1`] = `
       955,
       144,
       955,
-      171,
-      27,
+      176,
+      32,
     ],
     "method": "arcTo",
   },
   {
     "args": [
       955,
-      412,
+      454,
     ],
     "method": "lineTo",
   },
   {
     "args": [
       955,
-      439,
-      928,
-      439,
-      27,
+      486,
+      923,
+      486,
+      32,
     ],
     "method": "arcTo",
   },
   {
     "args": [
-      687,
-      439,
+      692,
+      486,
     ],
     "method": "lineTo",
   },
   {
     "args": [
       660,
-      439,
+      486,
       660,
-      412,
-      27,
+      454,
+      32,
     ],
     "method": "arcTo",
   },
   {
     "args": [
       660,
-      171,
+      176,
     ],
     "method": "lineTo",
   },
@@ -384,9 +384,9 @@ exports[`drawCard > snapshot calls per tema 1`] = `
     "args": [
       660,
       144,
-      687,
+      692,
       144,
-      27,
+      32,
     ],
     "method": "arcTo",
   },
@@ -10032,7 +10032,7 @@ exports[`drawCard > snapshot calls per tema 1`] = `
     "args": [
       "SCAN ATAU TAP DI SINI",
       807.5,
-      481.6,
+      456.5,
     ],
     "method": "fillText",
   },
@@ -10875,14 +10875,14 @@ exports[`drawCard > snapshot calls per tema 2`] = `
   },
   {
     "args": [
-      687,
+      692,
       144,
     ],
     "method": "moveTo",
   },
   {
     "args": [
-      928,
+      923,
       144,
     ],
     "method": "lineTo",
@@ -10892,49 +10892,49 @@ exports[`drawCard > snapshot calls per tema 2`] = `
       955,
       144,
       955,
-      171,
-      27,
+      176,
+      32,
     ],
     "method": "arcTo",
   },
   {
     "args": [
       955,
-      412,
+      454,
     ],
     "method": "lineTo",
   },
   {
     "args": [
       955,
-      439,
-      928,
-      439,
-      27,
+      486,
+      923,
+      486,
+      32,
     ],
     "method": "arcTo",
   },
   {
     "args": [
-      687,
-      439,
+      692,
+      486,
     ],
     "method": "lineTo",
   },
   {
     "args": [
       660,
-      439,
+      486,
       660,
-      412,
-      27,
+      454,
+      32,
     ],
     "method": "arcTo",
   },
   {
     "args": [
       660,
-      171,
+      176,
     ],
     "method": "lineTo",
   },
@@ -10942,9 +10942,9 @@ exports[`drawCard > snapshot calls per tema 2`] = `
     "args": [
       660,
       144,
-      687,
+      692,
       144,
-      27,
+      32,
     ],
     "method": "arcTo",
   },
@@ -10962,14 +10962,14 @@ exports[`drawCard > snapshot calls per tema 2`] = `
   },
   {
     "args": [
-      687,
+      692,
       144,
     ],
     "method": "moveTo",
   },
   {
     "args": [
-      928,
+      923,
       144,
     ],
     "method": "lineTo",
@@ -10979,49 +10979,49 @@ exports[`drawCard > snapshot calls per tema 2`] = `
       955,
       144,
       955,
-      171,
-      27,
+      176,
+      32,
     ],
     "method": "arcTo",
   },
   {
     "args": [
       955,
-      412,
+      454,
     ],
     "method": "lineTo",
   },
   {
     "args": [
       955,
-      439,
-      928,
-      439,
-      27,
+      486,
+      923,
+      486,
+      32,
     ],
     "method": "arcTo",
   },
   {
     "args": [
-      687,
-      439,
+      692,
+      486,
     ],
     "method": "lineTo",
   },
   {
     "args": [
       660,
-      439,
+      486,
       660,
-      412,
-      27,
+      454,
+      32,
     ],
     "method": "arcTo",
   },
   {
     "args": [
       660,
-      171,
+      176,
     ],
     "method": "lineTo",
   },
@@ -11029,9 +11029,9 @@ exports[`drawCard > snapshot calls per tema 2`] = `
     "args": [
       660,
       144,
-      687,
+      692,
       144,
-      27,
+      32,
     ],
     "method": "arcTo",
   },
@@ -20677,7 +20677,7 @@ exports[`drawCard > snapshot calls per tema 2`] = `
     "args": [
       "SCAN ATAU TAP DI SINI",
       807.5,
-      481.6,
+      456.5,
     ],
     "method": "fillText",
   },
