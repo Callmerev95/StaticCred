@@ -339,8 +339,8 @@ export interface QrBoxLayout {
 }
 
 // Geometri box QR sebagai data murni agar simetri bisa diuji:
-// modul selalu inset tepat innerPad dari keempat sisi box,
-// CTA selalu center horizontal.
+// drawn sudah termasuk quiet zone 4 modul di kedua sisi, modul gelap
+// selalu inset innerPad + quiet dari tepi box, CTA selalu center horizontal.
 export function qrBoxLayout(
   moduleCount: number,
   availW: number,
@@ -379,13 +379,16 @@ function drawQrBox(
     ctx.lineWidth = Math.max(1, Math.round(lay.cell / 3));
     strokeRoundRect(ctx, boxX, boxY, lay.boxW, lay.boxH, radius);
   }
+  // drawn sudah menyisakan quiet zone 4 modul di kedua sisi, jadi origin modul
+  // harus digeser sejauh quiet zone: tanpa ini QR meleset 4 modul ke kiri-atas.
+  const quiet = QR_QUIET_MODULES * lay.cell;
   drawQrModules(
     ctx,
     qr,
     {
       cell: lay.cell,
-      originX: boxX + lay.innerPad,
-      originY: boxY + lay.innerPad,
+      originX: boxX + lay.innerPad + quiet,
+      originY: boxY + lay.innerPad + quiet,
     },
     theme.qrFg,
   );

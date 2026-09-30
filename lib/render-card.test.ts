@@ -4,7 +4,14 @@ import {
   contrastRatio,
   getCardTheme,
 } from "./card-themes";
-import { drawCard, drawGoogleG, getQrInfo, qrBoxLayout, type DrawCardOpts } from "./render-card";
+import {
+  drawCard,
+  drawGoogleG,
+  getQrInfo,
+  qrBoxLayout,
+  QR_QUIET_MODULES,
+  type DrawCardOpts,
+} from "./render-card";
 import { CARD_SIZES, exportDims } from "./sizes";
 
 interface Call {
@@ -52,6 +59,100 @@ function textsOf(calls: Call[]): string[] {
   return calls
     .filter((c) => c.method === "fillText")
     .map((c) => String(c.args[0]));
+}
+
+interface Trace {
+  moveTo: number[];
+  arcTos: number[][];
+  action: string;
+}
+
+// Kumpulkan jalur round-rect dari rekaman ctx: moveTo(x+rr, y) + arcTo pertama
+// memuat kanan (args[0]) dan rr (args[4]), arcTo kedua memuat bawah (args[1]).
+function collectTraces(calls: Call[]): Trace[] {
+  const traces: Trace[] = [];
+  let curMove: number[] | null = null;
+  let curArcs: number[][] = [];
+  for (const c of calls) {
+    if (c.method === "beginPath") {
+      curMove = null;
+      curArcs = [];
+    } else if (c.method === "moveTo") {
+      if (curMove === null) curMove = c.args as number[];
+    } else if (c.method === "arcTo") {
+      curArcs.push(c.args as number[]);
+    } else if (
+      c.method === "fill" ||
+      c.method === "clip" ||
+      c.method === "stroke"
+    ) {
+      if (curMove && curArcs.length > 0) {
+        traces.push({ moveTo: curMove, arcTos: curArcs, action: c.method });
+      }
+      curMove = null;
+      curArcs = [];
+    }
+  }
+  return traces;
+}
+
+interface QrGeometry {
+  calls: Call[];
+  box: { left: number; top: number; right: number; bottom: number };
+  mod: { minX: number; minY: number; maxX: number; maxY: number };
+  cell: number;
+}
+
+// Ukur render nyata: bbox modul QR (rect Path2D) + pembungkus yang memuatnya
+// dengan luas terkecil (menghindari kartu/pill ikut terpilih).
+function measureQr(opts: DrawCardOpts): QrGeometry {
+  const rects: number[][] = [];
+  class FakePath {
+    rect(...args: number[]) {
+      rects.push(args);
+    }
+  }
+  vi.stubGlobal("Path2D", FakePath);
+  try {
+    const { ctx, calls } = createMockCtx();
+    drawCard(ctx, opts);
+    const xs = rects.map((r) => r[0]);
+    const ys = rects.map((r) => r[1]);
+    const cell = rects[0][2];
+    const mod = {
+      minX: Math.min(...xs),
+      minY: Math.min(...ys),
+      maxX: Math.max(...xs) + cell,
+      maxY: Math.max(...ys) + cell,
+    };
+    const box = collectTraces(calls)
+      .filter((t) => t.action === "fill" && t.arcTos.length >= 2)
+      .map((t) => {
+        const rr = t.arcTos[0][4];
+        return {
+          left: t.moveTo[0] - rr,
+          top: t.moveTo[1],
+          right: t.arcTos[0][0],
+          bottom: t.arcTos[1][1],
+        };
+      })
+      .filter(
+        (b) =>
+          b.left <= mod.minX &&
+          b.top <= mod.minY &&
+          b.right >= mod.maxX &&
+          b.bottom >= mod.maxY,
+      )
+      .sort(
+        (a, b) =>
+          (a.right - a.left) * (a.bottom - a.top) -
+          (b.right - b.left) * (b.bottom - b.top),
+      );
+    if (!box[0]) throw new Error("pembungkus QR tidak ditemukan");
+    return { calls, box: box[0], mod, cell };
+  } finally {
+    vi.unstubAllGlobals();
+  }
 }
 
 afterEach(() => {
@@ -192,15 +293,17 @@ describe("qrBoxLayout", () => {
       // Nilai harapan dari layout murni.
       const info = getQrInfo(BASE_OPTS.qrPayload);
       const lay = qrBoxLayout(info.moduleCount, 1011 * 0.3, 15, 10.11);
+      // Modul inset innerPad + quiet zone (4 modul) dari tepi box.
+      const quiet = QR_QUIET_MODULES * lay.cell;
       expect(boxRight - boxLeft).toBe(lay.boxW);
-      expect(modMinX - boxLeft).toBe(lay.innerPad);
-      expect(modMinY - boxTop).toBe(lay.innerPad);
+      expect(modMinX - boxLeft).toBe(lay.innerPad + quiet);
+      expect(modMinY - boxTop).toBe(lay.innerPad + quiet);
       // Baris finder teratas selalu dark penuh kolom 0..44:
       // kanan sisanya quiet zone + pad.
       const row0 = rects.filter((r) => r[1] === modMinY);
       const row0Last = Math.max(...row0.map((r) => r[0])) + lay.cell;
       expect(row0Last - modMinX).toBe(45 * lay.cell);
-      expect(boxRight - row0Last).toBe(8 * lay.cell + lay.innerPad);
+      expect(boxRight - row0Last).toBe(quiet + lay.innerPad);
       // CTA center horizontal terhadap box.
       const cta = calls.find(
         (c) => c.method === "fillText" && c.args[0] === "SCAN ATAU TAP DI SINI",
@@ -210,6 +313,52 @@ describe("qrBoxLayout", () => {
     } finally {
       vi.unstubAllGlobals();
     }
+  });
+});
+
+describe("QR center dalam pembungkus", () => {
+  const CASES: Array<[string, DrawCardOpts]> = [
+    ["pvc-h dark", BASE_OPTS],
+    ["pvc-h google", { ...BASE_OPTS, cardTheme: "google" }],
+    [
+      "pvc-v dark bleed",
+      {
+        ...BASE_OPTS,
+        widthPx: 638,
+        heightPx: 1011,
+        cardTheme: "dark",
+        bleed: true,
+      },
+    ],
+    [
+      "persegi google",
+      { ...BASE_OPTS, widthPx: 827, heightPx: 827, cardTheme: "google" },
+    ],
+  ];
+
+  it.each(CASES)("%s: modul center + quiet zone 4 modul", (_name, opts) => {
+    const { box, mod, cell } = measureQr(opts);
+    const left = mod.minX - box.left;
+    const right = box.right - mod.maxX;
+    const top = mod.minY - box.top;
+    const bottom = box.bottom - mod.maxY;
+    const quiet = QR_QUIET_MODULES * cell;
+    // Gejala bug: modul meleset 4 modul ke kiri-atas dalam pembungkus.
+    expect(left).toBe(right);
+    expect(top).toBe(left);
+    expect(left).toBeGreaterThanOrEqual(quiet);
+    expect(top).toBeGreaterThanOrEqual(quiet);
+    expect(right).toBeGreaterThanOrEqual(quiet);
+    expect(bottom).toBeGreaterThanOrEqual(quiet);
+  });
+
+  it("pvc-h: pembungkus menempel tepi kanan konten", () => {
+    const { box, calls } = measureQr(BASE_OPTS);
+    const serial = calls.find(
+      (c) => c.method === "fillText" && c.args[0] === BASE_OPTS.cardId,
+    );
+    expect(serial).toBeDefined();
+    expect(box.right).toBe(serial!.args[1]);
   });
 });
 
