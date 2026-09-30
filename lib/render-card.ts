@@ -129,16 +129,60 @@ function drawStar(
   ctx.fill();
 }
 
-// Badge G multicolor official untuk tema google. Empat busur + bilah biru,
-// digambar vector agar tajam di 300 DPI. Lihat DESIGN.md § Card Themes.
+// Badge G official, path persis dari @lobehub/icons Google.Color (MIT,
+// viewBox 24). Digambar via Path2D agar tajam di 300 DPI.
+export const GOOGLE_G_PATHS: Array<{ d: string; fill: string }> = [
+  {
+    d: "M23 12.245c0-.905-.075-1.565-.236-2.25h-10.54v4.083h6.186c-.124 1.014-.797 2.542-2.294 3.569l-.021.136 3.332 2.53.23.022C21.779 18.417 23 15.593 23 12.245z",
+    fill: "#4285F4",
+  },
+  {
+    d: "M12.225 23c3.03 0 5.574-.978 7.433-2.665l-3.542-2.688c-.948.648-2.22 1.1-3.891 1.1a6.745 6.745 0 01-6.386-4.572l-.132.011-3.465 2.628-.045.124C4.043 20.531 7.835 23 12.225 23z",
+    fill: "#34A853",
+  },
+  {
+    d: "M5.84 14.175A6.65 6.65 0 015.463 12c0-.758.138-1.491.361-2.175l-.006-.147-3.508-2.67-.115.054A10.831 10.831 0 001 12c0 1.772.436 3.447 1.197 4.938l3.642-2.763z",
+    fill: "#FBBC05",
+  },
+  {
+    d: "M12.225 5.253c2.108 0 3.529.892 4.34 1.638l3.167-3.031C17.787 2.088 15.255 1 12.225 1 7.834 1 4.043 3.469 2.197 7.062l3.63 2.763a6.77 6.77 0 016.398-4.572z",
+    fill: "#EB4335",
+  },
+];
+
+export function drawGoogleG(
+  ctx: CanvasRenderingContext2D,
+  cx: number,
+  cy: number,
+  r: number,
+): void {
+  const Path2DCtor = (
+    globalThis as unknown as { Path2D?: new (d: string) => Path2D }
+  ).Path2D;
+  if (typeof Path2DCtor === "undefined") {
+    drawGoogleGFallback(ctx, cx, cy, r);
+    return;
+  }
+  const s = (r * 2) / 24;
+  ctx.save();
+  ctx.translate(cx - s * 12, cy - s * 12);
+  ctx.scale(s, s);
+  for (const { d, fill } of GOOGLE_G_PATHS) {
+    ctx.fillStyle = fill;
+    ctx.fill(new Path2DCtor(d));
+  }
+  ctx.restore();
+}
+
+// Aproksimasi busur bila Path2D tak tersedia (di luar browser).
 export const GOOGLE_G_COLORS = {
   blue: "#4285F4",
-  red: "#EA4335",
+  red: "#EB4335",
   yellow: "#FBBC05",
   green: "#34A853",
 } as const;
 
-export function drawGoogleG(
+function drawGoogleGFallback(
   ctx: CanvasRenderingContext2D,
   cx: number,
   cy: number,
@@ -283,37 +327,37 @@ function drawQrModules(
   }
 }
 
-interface QrMeasure {
+export interface QrBoxLayout {
   cell: number;
   drawn: number;
   innerPad: number;
   boxW: number;
+  ctaSize: number;
+  gapCta: number;
+  ctaH: number;
+  boxH: number;
 }
 
-function measureQrBox(
-  qr: ReturnType<typeof buildQr>,
+// Geometri box QR sebagai data murni agar simetri bisa diuji:
+// modul selalu inset tepat innerPad dari keempat sisi box,
+// CTA selalu center horizontal.
+export function qrBoxLayout(
+  moduleCount: number,
   availW: number,
   minPad: number,
-): QrMeasure {
-  const n = qr.getModuleCount();
-  const totalUnits = n + QR_QUIET_MODULES * 2;
+  u: number,
+): QrBoxLayout {
+  const totalUnits = moduleCount + QR_QUIET_MODULES * 2;
   const cell = Math.max(1, Math.floor((availW - minPad * 2) / totalUnits));
   const drawn = cell * totalUnits;
-  const innerPad = Math.max(cell * 2, minPad);
+  // Padding selalu 2 modul agar QR memenuhi pembungkus (style-barcode.png).
+  const innerPad = Math.max(2, cell * 2);
   const boxW = drawn + innerPad * 2;
-  return { cell, drawn, innerPad, boxW };
-}
-
-// Tinggi box = pad atas + modul + gap + strip CTA + pad bawah.
-function qrBoxHeight(m: QrMeasure, ctaSize: number): number {
-  const gapCta = Math.round(m.innerPad * 1.2);
+  const ctaSize = Math.max(Math.round(u * 1.6), Math.round(drawn * 0.078));
+  const gapCta = Math.round(innerPad * 1.2);
   const ctaH = Math.round(ctaSize * 1.4);
-  return m.innerPad + m.drawn + gapCta + ctaH + m.innerPad;
-}
-
-// Ukuran font CTA proporsional modul: teks selebar QR (style-barcode.png).
-function ctaFontSize(m: QrMeasure, u: number): number {
-  return Math.max(Math.round(u * 1.6), Math.round(m.drawn * 0.078));
+  const boxH = innerPad + drawn + gapCta + ctaH + innerPad;
+  return { cell, drawn, innerPad, boxW, ctaSize, gapCta, ctaH, boxH };
 }
 
 // Kotak QR putih + modul center + CTA di dalam box pas di bawah QR.
@@ -324,37 +368,37 @@ function drawQrBox(
   qr: ReturnType<typeof buildQr>,
   boxX: number,
   boxY: number,
-  m: QrMeasure,
+  lay: QrBoxLayout,
   cta: string,
-  ctaSize: number,
 ): { boxW: number; boxH: number } {
-  const gapCta = Math.round(m.innerPad * 1.2);
-  const ctaH = Math.round(ctaSize * 1.4);
-  const boxH = qrBoxHeight(m, ctaSize);
-  const radius = Math.round(m.boxW * 0.11);
+  const radius = Math.round(lay.boxW * 0.11);
   ctx.fillStyle = theme.qrBg;
-  fillRoundRect(ctx, boxX, boxY, m.boxW, boxH, radius);
+  fillRoundRect(ctx, boxX, boxY, lay.boxW, lay.boxH, radius);
   if (theme.qrBoxBorder) {
     ctx.strokeStyle = theme.qrBoxBorder;
-    ctx.lineWidth = Math.max(1, Math.round(m.cell / 3));
-    strokeRoundRect(ctx, boxX, boxY, m.boxW, boxH, radius);
+    ctx.lineWidth = Math.max(1, Math.round(lay.cell / 3));
+    strokeRoundRect(ctx, boxX, boxY, lay.boxW, lay.boxH, radius);
   }
   drawQrModules(
     ctx,
     qr,
-    { cell: m.cell, originX: boxX + m.innerPad, originY: boxY + m.innerPad },
+    {
+      cell: lay.cell,
+      originX: boxX + lay.innerPad,
+      originY: boxY + lay.innerPad,
+    },
     theme.qrFg,
   );
   ctx.fillStyle = theme.ctaInBox;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  setFont(ctx, 700, ctaSize);
+  setFont(ctx, 700, lay.ctaSize);
   ctx.fillText(
-    truncateSingle(ctx, cta, m.boxW - m.innerPad),
-    boxX + m.boxW / 2,
-    boxY + m.innerPad + m.drawn + gapCta + ctaH / 2,
+    truncateSingle(ctx, cta, lay.boxW - lay.innerPad),
+    boxX + lay.boxW / 2,
+    boxY + lay.innerPad + lay.drawn + lay.gapCta + lay.ctaH / 2,
   );
-  return { boxW: m.boxW, boxH };
+  return { boxW: lay.boxW, boxH: lay.boxH };
 }
 
 function drawStarsRow(
@@ -439,19 +483,8 @@ function drawHeader(
   const { u, pad, ty, left, right } = f;
   const badgeD = Math.round(u * 5.2);
   const headerCy = ty + pad + badgeD / 2;
-  ctx.fillStyle = theme.badgeCircle;
-  ctx.beginPath();
-  ctx.arc(left + badgeD / 2, headerCy, badgeD / 2, 0, Math.PI * 2);
-  ctx.fill();
-  if (theme.id === "google") {
-    drawGoogleG(ctx, left + badgeD / 2, headerCy, badgeD / 2);
-  } else {
-    ctx.fillStyle = theme.badgeG;
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    setFont(ctx, 700, Math.round(badgeD * 0.58));
-    ctx.fillText("G", left + badgeD / 2, headerCy);
-  }
+  // G official langsung di atas kartu, tanpa lingkaran (logomark.png).
+  drawGoogleG(ctx, left + badgeD / 2, headerCy, badgeD / 2);
 
   ctx.textAlign = "left";
   ctx.textBaseline = "middle";
@@ -620,12 +653,10 @@ function drawLandscape(
 
   const qrTarget = f.tw * 0.3;
   const minPad = Math.round(u * 1.5);
-  const m = measureQrBox(qr, qrTarget, minPad);
-  const ctaSize = ctaFontSize(m, u);
-  const boxH = qrBoxHeight(m, ctaSize);
-  const boxX = Math.round(right - m.boxW);
-  const boxY = Math.round(midTop + (midBottom - midTop - boxH) / 2);
-  drawQrBox(ctx, theme, qr, boxX, boxY, m, texts.cta, ctaSize);
+  const lay = qrBoxLayout(qr.getModuleCount(), qrTarget, minPad, u);
+  const boxX = Math.round(right - lay.boxW);
+  const boxY = Math.round(midTop + (midBottom - midTop - lay.boxH) / 2);
+  drawQrBox(ctx, theme, qr, boxX, boxY, lay, texts.cta);
 
   // Kolom teks kiri.
   const textX = left;
@@ -736,12 +767,10 @@ function drawPortrait(
   );
   const qr = buildQr(flags.payload);
   const minPad = Math.round(u * 1.5);
-  const m = measureQrBox(qr, qrTarget, minPad);
-  const ctaSize = ctaFontSize(m, u);
-  const boxH = qrBoxHeight(m, ctaSize);
-  const boxX = Math.round(cx - m.boxW / 2);
-  const boxY = Math.round(zoneTop + (zoneBottom - zoneTop - boxH) / 2);
-  drawQrBox(ctx, theme, qr, boxX, boxY, m, texts.cta, ctaSize);
+  const lay = qrBoxLayout(qr.getModuleCount(), qrTarget, minPad, u);
+  const boxX = Math.round(cx - lay.boxW / 2);
+  const boxY = Math.round(zoneTop + (zoneBottom - zoneTop - lay.boxH) / 2);
+  drawQrBox(ctx, theme, qr, boxX, boxY, lay, texts.cta);
 
   ctx.fillStyle = theme.muted;
   ctx.textAlign = "center";

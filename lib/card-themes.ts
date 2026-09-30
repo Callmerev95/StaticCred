@@ -12,8 +12,6 @@ export interface CardTheme {
   muted: string;
   star: string;
   hairline: string;
-  badgeCircle: string;
-  badgeG: string;
   badgeFg: string;
   pillBg: string;
   pillFg: string;
@@ -39,8 +37,6 @@ export const CARD_THEMES: Record<CardThemeId, CardTheme> = {
     muted: "#a3a3a3",
     star: "#FBBC04",
     hairline: "rgba(255,255,255,0.16)",
-    badgeCircle: "#ffffff",
-    badgeG: "#4285F4",
     badgeFg: "#a3a3a3",
     pillBg: "rgba(255,255,255,0.14)",
     pillFg: "#fafafa",
@@ -62,8 +58,6 @@ export const CARD_THEMES: Record<CardThemeId, CardTheme> = {
     muted: "#5f6368",
     star: "#FBBC04",
     hairline: "#e5e5e5",
-    badgeCircle: "#f1f3f4",
-    badgeG: "#4285F4",
     badgeFg: "#3070E0",
     pillBg: "#f1f3f4",
     pillFg: "#444746",

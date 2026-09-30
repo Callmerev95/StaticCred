@@ -4,7 +4,7 @@ import {
   contrastRatio,
   getCardTheme,
 } from "./card-themes";
-import { drawCard, drawGoogleG, getQrInfo, type DrawCardOpts } from "./render-card";
+import { drawCard, drawGoogleG, getQrInfo, qrBoxLayout, type DrawCardOpts } from "./render-card";
 import { CARD_SIZES, exportDims } from "./sizes";
 
 interface Call {
@@ -108,27 +108,145 @@ describe("getQrInfo", () => {
   });
 });
 
-describe("drawGoogleG", () => {
-  it("memakai empat warna official tanpa teks", () => {
-    const { ctx, calls, props } = createMockCtx();
-    drawGoogleG(ctx, 50, 50, 24);
-    const strokes = calls.filter((c) => c.method === "stroke");
-    expect(strokes.length).toBe(4);
-    expect(props["strokeStyle"]).toBeDefined();
-    expect(
-      calls.some((c) => c.method === "fillText"),
-    ).toBe(false);
+describe("qrBoxLayout", () => {
+  it("simetri: pad kiri/kanan/atas/bawah identik untuk semua versi", () => {
+    for (const moduleCount of [21, 25, 33, 41, 49, 57, 65]) {
+      for (const availW of [200, 303, 400, 694]) {
+        const lay = qrBoxLayout(moduleCount, availW, 15, 10);
+        // Modul inset tepat innerPad dari keempat sisi.
+        expect(lay.boxW).toBe(lay.drawn + lay.innerPad * 2);
+        // Strip bawah simetris: pad + CTA + pad.
+        expect(lay.boxH).toBe(
+          lay.innerPad + lay.drawn + lay.gapCta + lay.ctaH + lay.innerPad,
+        );
+        // Padding selalu 2 modul.
+        expect(lay.innerPad).toBe(Math.max(2, lay.cell * 2));
+        expect(lay.cell).toBeGreaterThanOrEqual(1);
+      }
+    }
   });
 
-  it("dipakai badge tema google, bukan tema dark", () => {
-    const g = createMockCtx();
-    drawCard(g.ctx, { ...BASE_OPTS, cardTheme: "google" });
-    const d = createMockCtx();
-    drawCard(d.ctx, { ...BASE_OPTS, cardTheme: "dark" });
-    const gTexts = textsOf(g.calls);
-    const dTexts = textsOf(d.calls);
-    expect(gTexts).not.toContain("G");
-    expect(dTexts).toContain("G");
+  it("render nyata: modul dan CTA simetris dalam box (pvc-h dark)", () => {
+    const rects: number[][] = [];
+    class FakePath {
+      rect(...args: number[]) {
+        rects.push(args);
+      }
+    }
+    vi.stubGlobal("Path2D", FakePath);
+    try {
+      const { ctx, calls } = createMockCtx();
+      drawCard(ctx, BASE_OPTS);
+      // Bounding box modul dari rect yang terekam.
+      const xs = rects.map((r) => r[0]);
+      const ys = rects.map((r) => r[1]);
+      const cell = rects[0][2];
+      const modMinX = Math.min(...xs);
+      const modMaxEdge = Math.max(...xs) + cell;
+      const modMinY = Math.min(...ys);
+      // Box dari traceRoundRect: moveTo(boxX+rr, boxY), arcTo(boxX+boxW, ...).
+      // Kumpulkan semua trace + aksi penutupnya.
+      interface Trace {
+        moveTo: number[];
+        arcTos: number[][];
+        action: string;
+      }
+      const traces: Trace[] = [];
+      let curMove: number[] | null = null;
+      let curArcs: number[][] = [];
+      for (const c of calls) {
+        if (c.method === "beginPath") {
+          curMove = null;
+          curArcs = [];
+        } else if (c.method === "moveTo" && curArcs !== null) {
+          if (curMove === null) curMove = c.args as number[];
+        } else if (c.method === "arcTo") {
+          curArcs.push(c.args as number[]);
+        } else if (c.method === "fill" || c.method === "clip" || c.method === "stroke") {
+          if (curMove && curArcs.length > 0) {
+            traces.push({ moveTo: curMove, arcTos: curArcs, action: c.method });
+          }
+          curMove = null;
+          curArcs = [];
+        }
+      }
+      // Box QR = trace fill yang memuat modul dengan margin kecil.
+      const box = traces.find((t) => {
+        const rr = t.arcTos[0][4];
+        const left = t.moveTo[0] - rr;
+        const top = t.moveTo[1];
+        const right = t.arcTos[0][0];
+        return (
+          t.action === "fill" &&
+          left <= modMinX &&
+          top <= modMinY &&
+          right >= modMaxEdge &&
+          right - left < 600
+        );
+      });
+      expect(box).toBeDefined();
+      const rr = box!.arcTos[0][4];
+      const boxLeft = box!.moveTo[0] - rr;
+      const boxTop = box!.moveTo[1];
+      const boxRight = box!.arcTos[0][0];
+      // Nilai harapan dari layout murni.
+      const info = getQrInfo(BASE_OPTS.qrPayload);
+      const lay = qrBoxLayout(info.moduleCount, 1011 * 0.3, 15, 10.11);
+      expect(boxRight - boxLeft).toBe(lay.boxW);
+      expect(modMinX - boxLeft).toBe(lay.innerPad);
+      expect(modMinY - boxTop).toBe(lay.innerPad);
+      // Baris finder teratas selalu dark penuh kolom 0..44:
+      // kanan sisanya quiet zone + pad.
+      const row0 = rects.filter((r) => r[1] === modMinY);
+      const row0Last = Math.max(...row0.map((r) => r[0])) + lay.cell;
+      expect(row0Last - modMinX).toBe(45 * lay.cell);
+      expect(boxRight - row0Last).toBe(8 * lay.cell + lay.innerPad);
+      // CTA center horizontal terhadap box.
+      const cta = calls.find(
+        (c) => c.method === "fillText" && c.args[0] === "SCAN ATAU TAP DI SINI",
+      );
+      expect(cta).toBeDefined();
+      expect(cta!.args[1] as number).toBe(boxLeft + lay.boxW / 2);
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+});
+
+describe("drawGoogleG", () => {
+  it("memakai path official lobehub saat Path2D tersedia", () => {
+    const seen: string[] = [];
+    class FakePath {
+      constructor(d: string) {
+        seen.push(d);
+      }
+    }
+    vi.stubGlobal("Path2D", FakePath);
+    try {
+      const { ctx, calls } = createMockCtx();
+      drawGoogleG(ctx, 50, 50, 24);
+      expect(seen.length).toBe(4);
+      expect(seen[0]).toContain("M23 12.245");
+      expect(calls.filter((c) => c.method === "fill").length).toBe(4);
+      expect(calls.some((c) => c.method === "fillText")).toBe(false);
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it("fallback busur tanpa Path2D", () => {
+    const { ctx, calls } = createMockCtx();
+    drawGoogleG(ctx, 50, 50, 24);
+    expect(calls.filter((c) => c.method === "stroke").length).toBe(4);
+    expect(calls.some((c) => c.method === "fillText")).toBe(false);
+  });
+
+  it("G dipakai kedua tema tanpa teks", () => {
+    for (const cardTheme of ["dark", "google"] as const) {
+      const { ctx, calls } = createMockCtx();
+      drawCard(ctx, { ...BASE_OPTS, cardTheme });
+      expect(textsOf(calls)).not.toContain("G");
+    }
   });
 });
 
@@ -182,18 +300,26 @@ describe("drawCard", () => {
     expect(at("G-0NUJ")).toEqual([413.5]);
   });
 
-  it("wifi digambar bersama pill NFC (dark: 4 busur, tanpa NFC: 1)", () => {
-    const withNfc = createMockCtx();
-    drawCard(withNfc.ctx, { ...BASE_OPTS, cardTheme: "dark" });
-    const withoutNfc = createMockCtx();
-    drawCard(withoutNfc.ctx, {
-      ...BASE_OPTS,
-      cardTheme: "dark",
-      showNfc: false,
-    });
-    const arcs = (c: Call[]) => c.filter((x) => x.method === "arc").length;
-    expect(arcs(withNfc.calls)).toBe(4);
-    expect(arcs(withoutNfc.calls)).toBe(1);
+  it("wifi digambar bersama pill NFC (dark: 3 busur, tanpa NFC: 0)", () => {
+    class FakePath {
+      rect() {}
+    }
+    vi.stubGlobal("Path2D", FakePath);
+    try {
+      const withNfc = createMockCtx();
+      drawCard(withNfc.ctx, { ...BASE_OPTS, cardTheme: "dark" });
+      const withoutNfc = createMockCtx();
+      drawCard(withoutNfc.ctx, {
+        ...BASE_OPTS,
+        cardTheme: "dark",
+        showNfc: false,
+      });
+      const arcs = (c: Call[]) => c.filter((x) => x.method === "arc").length;
+      expect(arcs(withNfc.calls)).toBe(3);
+      expect(arcs(withoutNfc.calls)).toBe(0);
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
 
   it("tanpa nama toko memakai judul sebagai baris besar (Cetak Kosong)", () => {
