@@ -1,13 +1,16 @@
 // Satu sumber render kartu review untuk preview dan export.
-// Semua koordinat dalam piksel export. Lihat ADR-0002, CONTEXT.md,
-// reference/stitch-reference.png.
+// Semua koordinat dalam piksel export. Cabang landscape (pvc-h) dua kolom,
+// cabang portrait (lainnya) kolom tengah. Lihat ADR-0002, CONTEXT.md,
+// reference/stitch-reference.png + reference/*.png per ukuran.
 import qrcode from "qrcode-generator";
 import { BLEED_MM, mmToPx } from "./sizes";
-import { getCardTheme, type CardThemeId } from "./card-themes";
+import { getCardTheme, type CardTheme, type CardThemeId } from "./card-themes";
 
 export const QR_ECC = "H" as const;
 export const QR_QUIET_MODULES = 4;
 export const QR_VERSION_WARN = 10;
+export const CARD_RADIUS_FACTOR = 0.07;
+export const PORTRAIT_QR_WIDTH_FACTOR = 0.56;
 
 export interface CardTexts {
   title?: string;
@@ -94,6 +97,19 @@ function fillRoundRect(
   ctx.fill();
 }
 
+function strokeRoundRect(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  r: number,
+): void {
+  ctx.beginPath();
+  traceRoundRect(ctx, x, y, w, h, r);
+  ctx.stroke();
+}
+
 function drawStar(
   ctx: CanvasRenderingContext2D,
   cx: number,
@@ -148,19 +164,22 @@ export function drawGoogleG(
   ctx.fillRect(cx - lw * 0.1, cy - lw / 2, rr + lw * 0.6, lw);
 }
 
-// Ikon gelombang tap: tiga busur + titik, digambar vector.
-function drawTapGlyph(
+// Ikon wifi untuk pill TAP NFC: titik + dua busur membuka ke atas.
+export function drawWifiGlyph(
   ctx: CanvasRenderingContext2D,
   cx: number,
   cy: number,
   r: number,
+  color: string,
 ): void {
+  ctx.fillStyle = color;
+  ctx.strokeStyle = color;
   ctx.beginPath();
-  ctx.arc(cx, cy, r * 0.22, 0, Math.PI * 2);
+  ctx.arc(cx, cy + r * 0.4, r * 0.16, 0, Math.PI * 2);
   ctx.fill();
   ctx.beginPath();
-  for (let k = 1; k <= 2; k += 1) {
-    ctx.arc(cx, cy, r * (0.35 + k * 0.3), -Math.PI / 3, Math.PI / 3);
+  for (const k of [0.55, 0.95]) {
+    ctx.arc(cx, cy + r * 0.4, r * k, Math.PI * 1.25, Math.PI * 1.75);
     ctx.stroke();
   }
 }
@@ -221,14 +240,9 @@ function truncateSingle(
 }
 
 interface QrBox {
-  x: number;
-  y: number;
-  w: number;
-  h: number;
   cell: number;
   originX: number;
   originY: number;
-  drawn: number;
 }
 
 // Modul digabung dalam satu Path2D + sekali fill agar full-res 300 DPI tetap cepat.
@@ -269,6 +283,133 @@ function drawQrModules(
   }
 }
 
+interface QrMeasure {
+  cell: number;
+  drawn: number;
+  innerPad: number;
+  boxW: number;
+  boxH: number;
+}
+
+function measureQrBox(
+  qr: ReturnType<typeof buildQr>,
+  availW: number,
+  minPad: number,
+): QrMeasure {
+  const n = qr.getModuleCount();
+  const totalUnits = n + QR_QUIET_MODULES * 2;
+  const cell = Math.max(1, Math.floor((availW - minPad * 2) / totalUnits));
+  const drawn = cell * totalUnits;
+  const innerPad = Math.max(cell * 2, minPad);
+  const boxW = drawn + innerPad * 2;
+  return { cell, drawn, innerPad, boxW, boxH: boxW };
+}
+
+// Kotak QR putih + modul center. Tanpa caption (lihat style-barcode.png).
+function drawQrBox(
+  ctx: CanvasRenderingContext2D,
+  theme: CardTheme,
+  qr: ReturnType<typeof buildQr>,
+  boxX: number,
+  boxY: number,
+  m: QrMeasure,
+): void {
+  ctx.fillStyle = theme.qrBg;
+  fillRoundRect(
+    ctx,
+    boxX,
+    boxY,
+    m.boxW,
+    m.boxH,
+    Math.round(Math.min(m.boxW, m.boxH) * 0.09),
+  );
+  if (theme.qrBoxBorder) {
+    ctx.strokeStyle = theme.qrBoxBorder;
+    ctx.lineWidth = Math.max(1, Math.round(m.cell / 3));
+    strokeRoundRect(
+      ctx,
+      boxX,
+      boxY,
+      m.boxW,
+      m.boxH,
+      Math.round(Math.min(m.boxW, m.boxH) * 0.09),
+    );
+  }
+  drawQrModules(
+    ctx,
+    qr,
+    { cell: m.cell, originX: boxX + m.innerPad, originY: boxY + m.innerPad },
+    theme.qrFg,
+  );
+}
+
+function drawStarsRow(
+  ctx: CanvasRenderingContext2D,
+  theme: CardTheme,
+  cx: number,
+  cy: number,
+  starR: number,
+  ratingSize: number,
+  showStars: boolean,
+): number {
+  if (!showStars) return 0;
+  const gap = Math.round(starR * 0.6);
+  ctx.fillStyle = theme.star;
+  ctx.textBaseline = "middle";
+  setFont(ctx, 700, ratingSize);
+  const ratingW = ctx.measureText("5.0").width;
+  const totalW = 5 * starR * 2 + 4 * gap + Math.round(starR) + ratingW;
+  let x = cx - totalW / 2;
+  for (let i = 0; i < 5; i += 1) {
+    drawStar(ctx, x + starR, cy, starR);
+    x += starR * 2 + gap;
+  }
+  x += Math.round(starR * 0.4);
+  ctx.fillStyle = theme.heading;
+  ctx.textAlign = "left";
+  ctx.fillText("5.0", x, cy);
+  return totalW;
+}
+
+// Pill CTA standalone untuk cabang portrait. Filled biru (google) atau
+// outline muted (dark). Mengembalikan lebar pill.
+function drawCtaPill(
+  ctx: CanvasRenderingContext2D,
+  theme: CardTheme,
+  cx: number,
+  cy: number,
+  text: string,
+  fontSize: number,
+  u: number,
+): number {
+  setFont(ctx, 700, fontSize);
+  const textW = ctx.measureText(text).width;
+  const padX = Math.round(u * 4);
+  const pillH = Math.round(u * 5.6);
+  const pillW = Math.round(textW + padX * 2);
+  const pillX = Math.round(cx - pillW / 2);
+  if (theme.ctaBg) {
+    ctx.fillStyle = theme.ctaBg;
+    fillRoundRect(ctx, pillX, Math.round(cy - pillH / 2), pillW, pillH, pillH / 2);
+  } else if (theme.ctaOutline) {
+    ctx.strokeStyle = theme.hairline;
+    ctx.lineWidth = Math.max(1, Math.round(u * 0.25));
+    strokeRoundRect(
+      ctx,
+      pillX,
+      Math.round(cy - pillH / 2),
+      pillW,
+      pillH,
+      pillH / 2,
+    );
+  }
+  ctx.fillStyle = theme.ctaFg;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText(text, cx, cy);
+  return pillW;
+}
+
 function drawCropMarks(
   ctx: CanvasRenderingContext2D,
   w: number,
@@ -292,6 +433,92 @@ function drawCropMarks(
     ctx.lineTo(x, y + dy * len);
   }
   ctx.stroke();
+}
+
+interface CardFrame {
+  tx: number;
+  ty: number;
+  tw: number;
+  th: number;
+  u: number;
+  pad: number;
+  left: number;
+  right: number;
+}
+
+interface HeaderGeom {
+  badgeD: number;
+  headerCy: number;
+  contentRight: number;
+}
+
+// Header bersama: badge G + label kiri, pill TAP NFC kanan dengan ikon wifi.
+// Teks dan ikon center eksak pada sumbu header.
+function drawHeader(
+  ctx: CanvasRenderingContext2D,
+  theme: CardTheme,
+  f: CardFrame,
+  texts: Required<CardTexts>,
+  showNfc: boolean,
+): HeaderGeom {
+  const { u, pad, ty, left, right } = f;
+  const badgeD = Math.round(u * 5.2);
+  const headerCy = ty + pad + badgeD / 2;
+  ctx.fillStyle = theme.badgeCircle;
+  ctx.beginPath();
+  ctx.arc(left + badgeD / 2, headerCy, badgeD / 2, 0, Math.PI * 2);
+  ctx.fill();
+  if (theme.id === "google") {
+    drawGoogleG(ctx, left + badgeD / 2, headerCy, badgeD / 2);
+  } else {
+    ctx.fillStyle = theme.badgeG;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    setFont(ctx, 700, Math.round(badgeD * 0.58));
+    ctx.fillText("G", left + badgeD / 2, headerCy);
+  }
+
+  ctx.textAlign = "left";
+  ctx.textBaseline = "middle";
+  const fs = Math.round(u * 1.9);
+  setFont(ctx, 600, fs);
+  const iconD = Math.round(fs * 1.2);
+  const gapIcon = Math.round(fs * 0.5);
+  const padX = Math.round(u * 2.2);
+  const label = "TAP NFC";
+  const labelW = showNfc ? ctx.measureText(label).width : 0;
+  const contentW = showNfc ? iconD + gapIcon + labelW : 0;
+  const pillW = Math.round(contentW + padX * 2);
+  const pillH = Math.round(u * 4.4);
+  const contentRight = showNfc ? right - pillW - Math.round(u * 2) : right;
+
+  ctx.fillStyle = theme.badgeFg;
+  const badgeX = left + badgeD + Math.round(u * 1.6);
+  setFont(ctx, 600, Math.round(u * 2.1));
+  ctx.fillText(
+    truncateSingle(ctx, texts.badge, Math.max(10, contentRight - badgeX)),
+    badgeX,
+    headerCy,
+  );
+
+  if (showNfc) {
+    const pillX = right - pillW;
+    ctx.fillStyle = theme.pillBg;
+    fillRoundRect(ctx, pillX, Math.round(headerCy - pillH / 2), pillW, pillH, pillH / 2);
+    ctx.lineWidth = Math.max(1, Math.round(fs * 0.14));
+    drawWifiGlyph(
+      ctx,
+      pillX + padX + iconD / 2,
+      headerCy,
+      iconD / 2,
+      theme.nfcFg,
+    );
+    setFont(ctx, 600, fs);
+    ctx.fillStyle = theme.nfcFg;
+    ctx.textAlign = "left";
+    ctx.fillText(label, pillX + padX + iconD + gapIcon, headerCy);
+  }
+  return { badgeD, headerCy, contentRight };
 }
 
 export function drawCard(
@@ -323,13 +550,28 @@ export function drawCard(
   const tw = W - bleedPx * 2;
   const th = H - bleedPx * 2;
   ctx.beginPath();
-  traceRoundRect(ctx, tx, ty, tw, th, Math.round(Math.min(tw, th) * 0.055));
+  traceRoundRect(
+    ctx,
+    tx,
+    ty,
+    tw,
+    th,
+    Math.round(Math.min(tw, th) * CARD_RADIUS_FACTOR),
+  );
   ctx.clip();
 
   const u = tw / 100;
   const pad = Math.round(tw * 0.055);
-  const left = tx + pad;
-  const right = tx + tw - pad;
+  const f: CardFrame = {
+    tx,
+    ty,
+    tw,
+    th,
+    u,
+    pad,
+    left: tx + pad,
+    right: tx + tw - pad,
+  };
 
   try {
     (ctx as CanvasRenderingContext2D & { letterSpacing?: string }).letterSpacing =
@@ -338,56 +580,49 @@ export function drawCard(
     // letterSpacing opsional, abaikan bila canvas tidak mendukung.
   }
 
-  // Header: badge G + label kiri, pill TAP NFC kanan.
-  const badgeD = Math.round(u * 5.2);
-  const headerCy = ty + pad + badgeD / 2;
-  ctx.fillStyle = theme.badgeCircle;
-  ctx.beginPath();
-  ctx.arc(left + badgeD / 2, headerCy, badgeD / 2, 0, Math.PI * 2);
-  ctx.fill();
-  if (theme.id === "google") {
-    drawGoogleG(ctx, left + badgeD / 2, headerCy, badgeD / 2);
+  const header = drawHeader(ctx, theme, f, texts, showNfc);
+  const headerBottom = header.headerCy + header.badgeD / 2;
+
+  if (tw > th) {
+    drawLandscape(ctx, theme, f, header, opts, texts, {
+      showStars,
+      showSerial,
+      payload,
+    });
   } else {
-    ctx.fillStyle = theme.badgeG;
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    setFont(ctx, 700, Math.round(badgeD * 0.58));
-    ctx.fillText("G", left + badgeD / 2, headerCy + badgeD * 0.04);
+    drawPortrait(ctx, theme, f, header, headerBottom, opts, texts, {
+      showStars,
+      showSerial,
+      payload,
+    });
   }
 
-  ctx.fillStyle = theme.heading;
-  ctx.textAlign = "left";
-  setFont(ctx, 600, Math.round(u * 2.1));
-  const badgeX = left + badgeD + Math.round(u * 1.6);
-  // contentRight dihitung dari pill NFC agar badge tidak tertimpa di kartu sempit.
-  const nfcLabelW = showNfc
-    ? ctx.measureText("TAP NFC").width + Math.round(u * 4.4)
-    : 0;
-  const contentRight = showNfc ? right - nfcLabelW - Math.round(u * 2) : right;
-  ctx.fillText(
-    truncateSingle(ctx, texts.badge, Math.max(10, contentRight - badgeX)),
-    badgeX,
-    headerCy,
-  );
+  ctx.restore();
 
-  if (showNfc) {
-    const pillH = Math.round(u * 4.4);
-    const pillPadX = Math.round(u * 2.2);
-    setFont(ctx, 600, Math.round(u * 1.9));
-    const label = "TAP NFC";
-    const labelW = ctx.measureText(label).width;
-    const pillW = Math.round(labelW + pillPadX * 2);
-    const pillX = right - pillW;
-    const pillY = headerCy - pillH / 2;
-    ctx.fillStyle = theme.pillBg;
-    fillRoundRect(ctx, pillX, pillY, pillW, pillH, pillH / 2);
-    ctx.fillStyle = theme.pillFg;
-    ctx.textAlign = "center";
-    ctx.fillText(label, pillX + pillW / 2, headerCy + pillH * 0.04);
+  if (opts.bleed && bleedPx > 0) {
+    drawCropMarks(ctx, W, H, bleedPx, theme.muted);
   }
+}
 
-  // Footer: garis hairline + CTA kiri + serial kanan.
-  const footerH = Math.round(u * 9);
+interface BranchFlags {
+  showStars: boolean;
+  showSerial: boolean;
+  payload: string;
+}
+
+// pvc-h: dua kolom, CTA teks di bawah QR, footer garis + serial.
+function drawLandscape(
+  ctx: CanvasRenderingContext2D,
+  theme: CardTheme,
+  f: CardFrame,
+  header: HeaderGeom,
+  opts: DrawCardOpts,
+  texts: Required<CardTexts>,
+  flags: BranchFlags,
+): void {
+  const { u, pad, ty, th, left, right } = f;
+
+  const footerH = Math.round(u * 7);
   const footerY = ty + th - pad - footerH;
   ctx.strokeStyle = theme.hairline;
   ctx.lineWidth = Math.max(1, Math.round(u * 0.2));
@@ -396,91 +631,48 @@ export function drawCard(
   ctx.lineTo(right, footerY);
   ctx.stroke();
 
-  const footerCy = footerY + footerH / 2 + Math.round(u * 1.2);
-  ctx.textAlign = "left";
-  ctx.textBaseline = "middle";
-  setFont(ctx, 700, Math.round(u * 2.4));
-  const ctaW = ctx.measureText(texts.cta).width;
-  const glyphR = Math.round(u * 2.2);
-  let ctaX = left;
-  if (theme.ctaBg) {
-    const pillH = Math.round(u * 5.2);
-    const pillPadX = Math.round(u * 3);
-    const pillW = Math.round(ctaW + pillPadX * 2);
-    ctx.fillStyle = theme.ctaBg;
-    fillRoundRect(ctx, left, footerCy - pillH / 2, pillW, pillH, pillH / 2);
-    ctx.fillStyle = theme.ctaFg;
-    ctx.textAlign = "center";
-    ctx.fillText(texts.cta, left + pillW / 2, footerCy + pillH * 0.04);
-    ctaX = left + pillW + glyphR * 2;
-  } else {
-    ctx.fillStyle = theme.ctaFg;
-    ctx.strokeStyle = theme.ctaFg;
-    ctx.lineWidth = Math.max(1, Math.round(u * 0.25));
-    drawTapGlyph(ctx, left + glyphR, footerCy, glyphR);
-    ctaX = left + glyphR * 2 + Math.round(u);
-    ctx.fillText(texts.cta, ctaX, footerCy);
-  }
-
-  if (showSerial && opts.cardId) {
+  if (flags.showSerial && opts.cardId) {
     ctx.fillStyle = theme.muted;
     ctx.textAlign = "right";
+    ctx.textBaseline = "middle";
     setFont(ctx, 500, Math.round(u * 2));
-    ctx.fillText(opts.cardId.trim(), right, footerCy);
+    ctx.fillText(opts.cardId.trim(), right, footerY + footerH / 2);
   }
 
-  // Zona tengah: teks kiri, QR kanan.
-  const midTop = headerCy + badgeD / 2 + Math.round(u * 3);
-  const midBottom = footerY - Math.round(u * 3);
-  const qr = buildQr(payload);
-  const n = qr.getModuleCount();
-  const totalUnits = n + QR_QUIET_MODULES * 2;
+  const midTop = header.headerCy + header.badgeD / 2 + Math.round(u * 3);
+  const midBottom = footerY - Math.round(u * 2);
+  const qr = buildQr(flags.payload);
 
-  const qrSide = Math.round(Math.min(tw * 0.27, (midBottom - midTop) * 0.72));
-  const cell = Math.max(1, Math.floor(qrSide / totalUnits));
-  const drawn = cell * totalUnits;
-  const innerPad = cell * 2;
-  const captionH = Math.round(u * 3.4);
-  const boxW = drawn + innerPad * 2;
-  const boxH = drawn + innerPad * 2 + captionH;
-  const boxX = Math.round(right - boxW);
-  const boxY = Math.round(midTop + (midBottom - midTop - boxH) / 2);
-
-  if (theme.qrBoxed) {
-    ctx.fillStyle = theme.qrBg;
-    fillRoundRect(ctx, boxX, boxY, boxW, boxH, Math.round(u * 1.6));
-  }
-  drawQrModules(
-    ctx,
-    qr,
-    {
-      x: boxX,
-      y: boxY,
-      w: boxW,
-      h: boxH,
-      cell,
-      originX: boxX + innerPad,
-      originY: boxY + innerPad,
-      drawn,
-    },
-    theme.qrFg,
+  const ctaSize = Math.round(u * 2.2);
+  const gapBoxCta = Math.round(u * 2.5);
+  const qrTarget = Math.min(
+    f.tw * 0.3,
+    midBottom - midTop - (ctaSize + gapBoxCta),
   );
-  ctx.fillStyle = theme.qrBoxed ? "#5f6368" : theme.muted;
+  const minPad = Math.round(u * 1.5);
+  const m = measureQrBox(qr, qrTarget, minPad);
+  const blockH = m.boxH + gapBoxCta + ctaSize;
+  const boxX = Math.round(right - m.boxW);
+  const boxY = Math.round(midTop + (midBottom - midTop - blockH) / 2);
+  drawQrBox(ctx, theme, qr, boxX, boxY, m);
+
+  const boxCx = boxX + m.boxW / 2;
+  ctx.fillStyle = theme.id === "google" ? theme.badgeFg : theme.ctaFg;
   ctx.textAlign = "center";
-  setFont(ctx, 500, Math.round(u * 1.7));
+  ctx.textBaseline = "alphabetic";
+  setFont(ctx, 700, ctaSize);
   ctx.fillText(
-    `ECC-H • ${QR_QUIET_MODULES} MOD`,
-    boxX + boxW / 2,
-    boxY + innerPad + drawn + captionH / 2,
+    truncateSingle(ctx, texts.cta, m.boxW + Math.round(u * 8)),
+    boxCx,
+    boxY + m.boxH + gapBoxCta + ctaSize * 0.8,
   );
 
-  // Kolom teks.
+  // Kolom teks kiri.
   const textX = left;
   const textW = Math.max(10, boxX - Math.round(u * 3) - textX);
   const name = opts.businessName.trim();
   let cursorY = midTop + Math.round(u * 2);
   ctx.textAlign = "left";
-  ctx.textBaseline = "alphabetic";
 
   if (name) {
     ctx.fillStyle = theme.muted;
@@ -498,7 +690,7 @@ export function drawCard(
     cursorY += Math.round(u * 5);
   }
 
-  if (showStars) {
+  if (flags.showStars) {
     const starR = Math.round(u * 1.5);
     const starGap = Math.round(u * 0.9);
     ctx.fillStyle = theme.star;
@@ -523,10 +715,92 @@ export function drawCard(
     ctx.fillText(ln, textX, cursorY);
     cursorY += Math.round(u * 3.2);
   }
+}
 
-  ctx.restore();
+// Portrait + persegi: kolom tengah sesuai reference per ukuran.
+function drawPortrait(
+  ctx: CanvasRenderingContext2D,
+  theme: CardTheme,
+  f: CardFrame,
+  header: HeaderGeom,
+  headerBottom: number,
+  opts: DrawCardOpts,
+  texts: Required<CardTexts>,
+  flags: BranchFlags,
+): void {
+  const { u, pad, ty, th, left, right } = f;
+  const cx = (left + right) / 2;
+  const name = opts.businessName.trim();
+  const bottomPad = Math.round(u * 4);
 
-  if (opts.bleed && bleedPx > 0) {
-    drawCropMarks(ctx, W, H, bleedPx, theme.muted);
+  const serialH = flags.showSerial && opts.cardId ? Math.round(u * 3.4) : 0;
+  const subH = Math.round(u * 3);
+  const ctaSize = Math.round(u * 2.6);
+  const ctaH = Math.round(u * 5.6);
+  const gapQrCta = Math.round(u * 4.5);
+  const gapCtaSub = Math.round(u * 2.6);
+  const gapSubSerial = Math.round(u * 2.4);
+
+  let cursorY = headerBottom + Math.round(u * 5);
+  ctx.textAlign = "center";
+  ctx.textBaseline = "alphabetic";
+
+  if (name) {
+    ctx.fillStyle = theme.heading;
+    setFont(ctx, 700, Math.round(u * 4.6));
+    ctx.fillText(truncateSingle(ctx, name, f.tw - pad * 2), cx, cursorY);
+    cursorY += Math.round(u * 4.4);
+    ctx.fillStyle = theme.muted;
+    setFont(ctx, 400, Math.round(u * 2.2));
+    ctx.fillText(truncateSingle(ctx, texts.title, f.tw - pad * 2), cx, cursorY);
+    cursorY += Math.round(u * 4.6);
+  } else {
+    ctx.fillStyle = theme.heading;
+    setFont(ctx, 700, Math.round(u * 4.2));
+    ctx.fillText(truncateSingle(ctx, texts.title, f.tw - pad * 2), cx, cursorY);
+    cursorY += Math.round(u * 5);
+  }
+
+  const starsTop = cursorY;
+  if (flags.showStars) {
+    const starR = Math.round(u * 1.6);
+    drawStarsRow(ctx, theme, cx, cursorY, starR, Math.round(u * 2.4), true);
+    cursorY += Math.round(u * 4);
+  }
+
+  const zoneTop = Math.max(cursorY, starsTop + Math.round(u * 2));
+  const ctaTop = ty + th - pad - bottomPad - serialH - gapSubSerial - subH - gapCtaSub - ctaH;
+  const zoneBottom = ctaTop - gapQrCta;
+  const qrTarget = Math.min(
+    f.tw * PORTRAIT_QR_WIDTH_FACTOR,
+    Math.max(10, zoneBottom - zoneTop),
+  );
+  const qr = buildQr(flags.payload);
+  const minPad = Math.round(u * 1.5);
+  const m = measureQrBox(qr, qrTarget, minPad);
+  const boxX = Math.round(cx - m.boxW / 2);
+  const boxY = Math.round(zoneTop + (zoneBottom - zoneTop - m.boxH) / 2);
+  drawQrBox(ctx, theme, qr, boxX, boxY, m);
+
+  const ctaY = ctaTop + ctaH / 2;
+  drawCtaPill(ctx, theme, cx, Math.round(ctaY), texts.cta, ctaSize, u);
+
+  ctx.fillStyle = theme.muted;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  setFont(ctx, 400, Math.round(u * 2));
+  const subLines = wrapLines(ctx, texts.subCta, f.tw - pad * 3, 1);
+  if (subLines.length > 0) {
+    ctx.fillText(subLines[0], cx, Math.round(ctaY + ctaH / 2 + gapCtaSub + subH / 2));
+  }
+
+  if (flags.showSerial && opts.cardId) {
+    ctx.fillStyle = theme.muted;
+    setFont(ctx, 500, Math.round(u * 1.9));
+    ctx.fillText(
+      opts.cardId.trim(),
+      cx,
+      Math.round(ty + th - pad - bottomPad - serialH / 2),
+    );
   }
 }

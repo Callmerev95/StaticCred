@@ -14,15 +14,20 @@ export interface CardTheme {
   hairline: string;
   badgeCircle: string;
   badgeG: string;
+  badgeFg: string;
   pillBg: string;
   pillFg: string;
+  nfcFg: string;
   qrFg: string;
   qrBg: string;
   qrBoxed: boolean;
+  qrBoxBorder: string | null;
   ctaBg: string | null;
   ctaFg: string;
+  ctaOutline: boolean;
 }
 
+// Biru sampel piksel referensi: badge #3070E0, pill CTA #3871E0.
 // QR selalu modul gelap di atas bidang terang, kedua tema. ECC H.
 export const CARD_THEMES: Record<CardThemeId, CardTheme> = {
   dark: {
@@ -35,13 +40,17 @@ export const CARD_THEMES: Record<CardThemeId, CardTheme> = {
     hairline: "rgba(255,255,255,0.16)",
     badgeCircle: "#ffffff",
     badgeG: "#4285F4",
+    badgeFg: "#a3a3a3",
     pillBg: "rgba(255,255,255,0.14)",
     pillFg: "#fafafa",
+    nfcFg: "#FBBC04",
     qrFg: "#0a0a0a",
     qrBg: "#ffffff",
     qrBoxed: true,
+    qrBoxBorder: null,
     ctaBg: null,
-    ctaFg: "#fafafa",
+    ctaFg: "#a3a3a3",
+    ctaOutline: true,
   },
   google: {
     id: "google",
@@ -53,13 +62,17 @@ export const CARD_THEMES: Record<CardThemeId, CardTheme> = {
     hairline: "#e5e5e5",
     badgeCircle: "#f1f3f4",
     badgeG: "#4285F4",
+    badgeFg: "#3070E0",
     pillBg: "#f1f3f4",
     pillFg: "#444746",
+    nfcFg: "#444746",
     qrFg: "#0a0a0a",
     qrBg: "#ffffff",
-    qrBoxed: false,
-    ctaBg: "#0a0a0a",
-    ctaFg: "#fafafa",
+    qrBoxed: true,
+    qrBoxBorder: "#e5e5e5",
+    ctaBg: "#3871E0",
+    ctaFg: "#ffffff",
+    ctaOutline: false,
   },
 };
 

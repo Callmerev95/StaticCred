@@ -212,19 +212,29 @@ Rules: radius 18px interactive / 24px containers unchanged; preview dot-grid bac
 
 ## Card Themes (Print — Canvas tokens, not CSS)
 
-Independent axis from app theme. Passed as `cardTheme` into `drawCard(ctx, {...})`. Two themes only. Default: `dark`.
+Independent axis from app theme. Passed as `cardTheme` into `drawCard(ctx, {...})`. Two themes only. Default: `dark`. Layout source: `reference/stitch-reference.png` (pvc-h) + `reference/*.png` per ukuran. Revised v2 (issue #11).
 
-### `dark` — hitam elegan (default, see `reference/stitch-reference.png`)
+Shared rules (both themes):
+- Card radius `0.07 × min-dimensi`.
+- Header: badge G + label kiri, pill TAP NFC kanan berisi ikon wifi + teks, center eksak satu sumbu.
+- QR selalu box putih + modul center + quiet zone ≥4 modul, tanpa caption. ECC H, modul gelap di bidang terang, selalu.
+- pvc-h (landscape): dua kolom, CTA teks di bawah QR, footer garis + serial.
+- Portrait + persegi: kolom tengah (nama, stars, QR box 0.56 lebar kartu, pill CTA, sub-caption, serial tengah-bawah bila aktif).
+
+### `dark` — hitam elegan (default)
 - bg `#0a0a0a`, heading `#fafafa`, body `#d4d4d4`, muted `#a3a3a3`
-- stars gold `#FBBC04`, pill (TAP NFC) translucent white bg + `#fafafa` text
-- QR: black modules on white rounded box + quiet zone ≥4 modules, caption `ECC-H • 4 MOD`
-- footer CTA `#fafafa`, serial `G-XXXX` muted
+- badge teks muted `#a3a3a3`, badge G satu warna `#4285F4`
+- stars gold `#FBBC04`, TAP NFC gold `#FBBC04` (sama seperti bintang)
+- QR box putih tanpa border
+- CTA bawah QR muted, CTA portrait pill outline hairline + teks muted
+- serial `G-XXXX` muted
 
 ### `google` — putih bersih official
 - bg `#ffffff`, heading `#0a0a0a`, body `#444746`, muted `#5f6368`
-- badge "G" multicolor official, stars `#FBBC04`
-- QR: black modules directly on white (no box), quiet zone ≥4 modules
-- CTA filled `#0a0a0a` pill, serial `G-XXXX` muted
+- badge "G" multicolor official + teks badge biru `#3070E0` (sampel piksel referensi)
+- stars `#FBBC04`
+- QR box putih + border `#e5e5e5`
+- CTA pill filled `#3871E0` teks putih (sampel piksel referensi), serial `G-XXXX` muted
 
 QR contrast rule (both themes): dark modules on light field, always. Never white-on-black QR. ECC level H always.
 

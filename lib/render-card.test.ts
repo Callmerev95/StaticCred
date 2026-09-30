@@ -83,6 +83,15 @@ describe("kontras Tema Kartu (acceptance PRD)", () => {
       expect(contrastRatio(t.qrFg, t.qrBg)).toBeGreaterThanOrEqual(4.5);
     }
   });
+
+  it("badge biru dan NFC emas lolos untuk teks besar", () => {
+    expect(
+      contrastRatio(CARD_THEMES.google.badgeFg, CARD_THEMES.google.bg),
+    ).toBeGreaterThanOrEqual(3);
+    expect(
+      contrastRatio(CARD_THEMES.dark.nfcFg, CARD_THEMES.dark.bg),
+    ).toBeGreaterThanOrEqual(4.5);
+  });
 });
 
 describe("getQrInfo", () => {
@@ -130,15 +139,61 @@ describe("drawCard", () => {
     expect(() => drawCard(ctx, { ...BASE_OPTS, qrPayload: "   " })).toThrow();
   });
 
-  it("menggambar nama, CTA, serial, dan caption QR", () => {
+  it("landscape: nama, CTA di bawah QR, serial footer, tanpa caption", () => {
     const { ctx, calls } = createMockCtx();
     drawCard(ctx, BASE_OPTS);
     const texts = textsOf(calls);
     expect(texts).toContain("Kopi Senja Utama");
     expect(texts).toContain("SCAN ATAU TAP DI SINI");
     expect(texts).toContain("G-0NUJ");
-    expect(texts).toContain("ECC-H • 4 MOD");
+    expect(texts.some((t) => t.includes("ECC-H"))).toBe(false);
     expect(texts).toContain("5.0");
+  });
+
+  it("portrait: kolom tengah dengan pill CTA dan serial tengah", () => {
+    const { ctx, calls } = createMockCtx();
+    drawCard(ctx, {
+      ...BASE_OPTS,
+      widthPx: 638,
+      heightPx: 1011,
+      cardTheme: "google",
+    });
+    const texts = textsOf(calls);
+    expect(texts).toContain("Kopi Senja Utama");
+    expect(texts).toContain("SCAN ATAU TAP DI SINI");
+    expect(texts).toContain("G-0NUJ");
+    expect(texts.filter((t) => t === "SCAN ATAU TAP DI SINI").length).toBe(1);
+  });
+
+  it("persegi memakai cabang portrait (CTA dan serial center)", () => {
+    const { ctx, calls } = createMockCtx();
+    drawCard(ctx, {
+      ...BASE_OPTS,
+      widthPx: 827,
+      heightPx: 827,
+      cardTheme: "dark",
+      cardId: "G-0NUJ",
+    });
+    const at = (text: string) =>
+      calls
+        .filter((c) => c.method === "fillText" && c.args[0] === text)
+        .map((c) => c.args[1] as number);
+    expect(at("SCAN ATAU TAP DI SINI")).toEqual([413.5]);
+    expect(at("G-0NUJ")).toEqual([413.5]);
+  });
+
+  it("wifi digambar bersama pill NFC (dark: 4 busur, tanpa NFC: 1)", () => {
+    const withNfc = createMockCtx();
+    drawCard(withNfc.ctx, { ...BASE_OPTS, cardTheme: "dark" });
+    const withoutNfc = createMockCtx();
+    drawCard(withoutNfc.ctx, {
+      ...BASE_OPTS,
+      cardTheme: "dark",
+      showNfc: false,
+    });
+    const arcs = (c: Call[]) => c.filter((x) => x.method === "arc").length;
+    expect(arcs(withNfc.calls)).toBe(4);
+    expect(arcs(withoutNfc.calls)).toBe(1);
   });
 
   it("tanpa nama toko memakai judul sebagai baris besar (Cetak Kosong)", () => {
