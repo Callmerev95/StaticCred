@@ -449,7 +449,7 @@ describe("drawCard", () => {
     expect(at("G-0NUJ")).toEqual([413.5]);
   });
 
-  it("wifi digambar bersama pill NFC (dark: 3 busur, tanpa NFC: 0)", () => {
+  it("ikon contactless digambar bersama pill NFC (4 busur, tanpa NFC: 0)", () => {
     class FakePath {
       rect() {}
     }
@@ -464,8 +464,57 @@ describe("drawCard", () => {
         showNfc: false,
       });
       const arcs = (c: Call[]) => c.filter((x) => x.method === "arc").length;
-      expect(arcs(withNfc.calls)).toBe(3);
+      expect(arcs(withNfc.calls)).toBe(4);
       expect(arcs(withoutNfc.calls)).toBe(0);
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it("glyph contactless: 4 busur sepusat ±45°, radius sesuai artwork Flaticon", () => {
+    class FakePath {
+      rect() {}
+    }
+    vi.stubGlobal("Path2D", FakePath);
+    try {
+      const { ctx, calls } = createMockCtx();
+      drawCard(ctx, { ...BASE_OPTS, cardTheme: "dark" });
+      const arcs = calls.filter((c) => c.method === "arc");
+      expect(arcs).toHaveLength(4);
+      // Tiap arc harus punya beginPath sendiri, kalau tidak arc() menyambung
+      // subpath sebelumnya dengan garis diagonal.
+      const arcIdx = calls
+        .map((c, i) => (c.method === "arc" ? i : -1))
+        .filter((i) => i >= 0);
+      for (const i of arcIdx) {
+        expect(calls[i - 1].method).toBe("beginPath");
+      }
+      const geom = arcs.map((a) => ({
+        cx: a.args[0] as number,
+        cy: a.args[1] as number,
+        r: a.args[2] as number,
+        start: a.args[3] as number,
+        end: a.args[4] as number,
+      }));
+      for (const g of geom) {
+        expect(g.start).toBeCloseTo(-Math.PI / 4, 5);
+        expect(g.end).toBeCloseTo(Math.PI / 4, 5);
+        expect(g.cy).toBeCloseTo(geom[0].cy, 5);
+        expect(g.cx).toBeCloseTo(geom[0].cx, 5);
+      }
+      // Radius bertingkat: jarak konstan 91, busur terkecil 68 (artwork 512px).
+      const step = geom[1].r - geom[0].r;
+      expect(step).toBeGreaterThan(0);
+      expect(geom[2].r - geom[1].r).toBeCloseTo(step, 5);
+      expect(geom[3].r - geom[2].r).toBeCloseTo(step, 5);
+      expect(geom[0].r).toBeCloseTo((step * 68) / 91, 5);
+      // Bounding box ink: kiri = busur dalam di -45°, kanan = busur luar di 0°.
+      const k = step / 91;
+      const lw = 31 * k;
+      const left = geom[0].cx + geom[0].r * Math.SQRT1_2 - lw / 2;
+      const right = geom[3].cx + geom[3].r + lw / 2;
+      const halfH = geom[3].r * Math.SQRT1_2 + lw / 2;
+      expect((right - left) / (halfH * 2)).toBeCloseTo(0.631, 3);
     } finally {
       vi.unstubAllGlobals();
     }

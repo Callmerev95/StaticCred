@@ -367,7 +367,7 @@ export default function BusinessForm({ state, onChange, appUrl }: BusinessFormPr
             label="Ikon NFC"
             checked={state.showNfc}
             onToggle={() => onChange({ showNfc: !state.showNfc })}
-            icon={<span aria-hidden="true">((·))</span>}
+            icon={<span aria-hidden="true">)))</span>}
           />
           <Toggle
             label="Serial ID"

@@ -55,6 +55,9 @@ Deploy: Vercel (static, tanpa env apa pun).
 - Kebutuhan: `PRD.md`. Istilah: `CONTEXT.md`. Acuan UI/UX: `DESIGN.md` + `reference/`. Arsitektur: `docs/adr/`.
 - Kerja agen: `AGENTS.md` + `docs/agents/`.
 
+## Kredit aset
+- Ikon contactless pada pill TAP NFC: Contactless icon from Flaticon (ID 6107543).
+
 ## Kontribusi / tiket
 Tiket hidup di GitHub Issues (`Callmerev95/StaticCred`), label triase: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`. Tiket awal: #1–#8.
 

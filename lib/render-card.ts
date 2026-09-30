@@ -208,24 +208,32 @@ function drawGoogleGFallback(
   ctx.fillRect(cx - lw * 0.1, cy - lw / 2, rr + lw * 0.6, lw);
 }
 
-// Ikon wifi untuk pill TAP NFC: titik + dua busur membuka ke atas.
-export function drawWifiGlyph(
+// Ikon contactless untuk pill TAP NFC: 4 busur sepusat membuka ke kanan.
+// Kontur diambil dari artwork Flaticon (Contactless, ID 6107543) berukuran 512px:
+// pusat busur di (61, 256), radius 68/159/250/341 (jarak 91), setengah sudut 45°,
+// tebal garis 31, round cap. Di sini dikunci lewat d: pusat busur geser
+// (61-256)·d/512 ke kiri dari pusat glyph agar ink tetap center di (cx, cy).
+export function drawContactlessGlyph(
   ctx: CanvasRenderingContext2D,
   cx: number,
   cy: number,
-  r: number,
+  d: number,
   color: string,
 ): void {
-  ctx.fillStyle = color;
+  const k = d / 512;
+  const step = 91 * k;
+  ctx.save();
   ctx.strokeStyle = color;
-  ctx.beginPath();
-  ctx.arc(cx, cy + r * 0.4, r * 0.16, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.beginPath();
-  for (const k of [0.55, 0.95]) {
-    ctx.arc(cx, cy + r * 0.4, r * k, Math.PI * 1.25, Math.PI * 1.75);
+  ctx.lineWidth = Math.max(1, 31 * k);
+  ctx.lineCap = "round";
+  // beginPath per busur: arc() menyambung titik akhir subpath sebelumnya
+  // ke awal busur berikutnya, yang bikin garis diagonal menempel.
+  for (const r of [68 * k, 68 * k + step, 68 * k + step * 2, 68 * k + step * 3]) {
+    ctx.beginPath();
+    ctx.arc(cx - 195 * k, cy, r, -Math.PI / 4, Math.PI / 4);
     ctx.stroke();
   }
+  ctx.restore();
 }
 
 function setFont(
@@ -474,7 +482,7 @@ interface HeaderGeom {
   contentRight: number;
 }
 
-// Header bersama: badge G + label kiri, pill TAP NFC kanan dengan ikon wifi.
+// Header bersama: badge G + label kiri, pill TAP NFC kanan dengan ikon contactless.
 // Teks dan ikon center eksak pada sumbu header.
 function drawHeader(
   ctx: CanvasRenderingContext2D,
@@ -516,12 +524,11 @@ function drawHeader(
     const pillX = right - pillW;
     ctx.fillStyle = theme.pillBg;
     fillRoundRect(ctx, pillX, Math.round(headerCy - pillH / 2), pillW, pillH, pillH / 2);
-    ctx.lineWidth = Math.max(1, Math.round(fs * 0.14));
-    drawWifiGlyph(
+    drawContactlessGlyph(
       ctx,
       pillX + padX + iconD / 2,
       headerCy,
-      iconD / 2,
+      iconD,
       theme.nfcFg,
     );
     setFont(ctx, 600, fs);
