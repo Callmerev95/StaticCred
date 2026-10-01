@@ -194,7 +194,7 @@ export default function LivePreview({
             id={`${uid}-size`}
             value={sizeId}
             onChange={(e) => onSizeChange(e.target.value as SizeId)}
-            className="min-h-11 rounded-2xl border border-hairline bg-surface-alt px-3 text-sm font-medium text-ink focus:border-ink focus:outline-none"
+            className="min-h-10 rounded-xl border border-hairline bg-surface-alt px-3 text-sm font-medium text-ink focus:border-ink focus:outline-none"
           >
             {CARD_SIZES.map((s) => (
               <option key={s.id} value={s.id}>

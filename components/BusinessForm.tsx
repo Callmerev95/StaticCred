@@ -371,11 +371,15 @@ export default function BusinessForm({
                     {state.cardId}
                   </p>
                 </div>
-                <div className="flex flex-wrap gap-2">
+                <div
+                  role="group"
+                  aria-label="Aksi ID kartu"
+                  className="flex flex-wrap gap-1 rounded-full border border-hairline bg-canvas p-1"
+                >
                   <button
                     type="button"
                     onClick={() => onChange({ cardId: generateCardId() })}
-                    className="min-h-11 rounded-full bg-ink px-4 text-sm font-semibold text-paper focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2 focus-visible:outline-none"
+                    className="min-h-9 flex-1 rounded-full bg-ink px-3 text-xs font-semibold whitespace-nowrap text-paper focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2 focus-visible:outline-none"
                   >
                     ID Baru
                   </button>
@@ -383,7 +387,7 @@ export default function BusinessForm({
                     href={activateLink}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex min-h-11 items-center rounded-full border border-hairline px-4 text-sm font-semibold text-ink focus-visible:ring-2 focus-visible:ring-ink focus-visible:outline-none"
+                    className="inline-flex min-h-9 flex-1 items-center justify-center rounded-full px-3 text-xs font-semibold whitespace-nowrap text-deep-gray transition-colors hover:bg-surface-alt hover:text-ink focus-visible:ring-2 focus-visible:ring-ink focus-visible:outline-none"
                   >
                     Buka Link
                   </a>
@@ -391,7 +395,7 @@ export default function BusinessForm({
                     type="button"
                     onClick={createBatch}
                     disabled={batchBusy}
-                    className="min-h-11 rounded-full border border-hairline px-4 text-sm font-semibold text-ink focus-visible:ring-2 focus-visible:ring-ink focus-visible:outline-none disabled:opacity-60"
+                    className="min-h-9 flex-1 rounded-full px-3 text-xs font-semibold whitespace-nowrap text-deep-gray transition-colors hover:bg-surface-alt hover:text-ink focus-visible:ring-2 focus-visible:ring-ink focus-visible:outline-none disabled:opacity-60"
                   >
                     {batchBusy ? "Membuat 50 ID..." : "Buat 50 ID"}
                   </button>
