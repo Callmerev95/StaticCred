@@ -5,6 +5,7 @@ import { activateCardAction } from "@/lib/actions";
 import { BUSINESS_NAME_MAX } from "@/lib/form-state";
 import { extractPlaceId } from "@/lib/review-url";
 import { ActivationSuccess } from "./views";
+import { useResolvedStatus } from "./useResolvedStatus";
 
 const PANDUAN_STEPS = [
   "Cari nama toko Anda di Google Search, klik kanan tombol Tulis ulasan, lalu pilih Salin tautan dan tempel di kolom ini.",
@@ -21,6 +22,15 @@ export default function ActivationForm({ serial }: { serial: string }) {
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
   const [done, setDone] = useState(false);
+  const remote = useResolvedStatus(url);
+
+  const urlHint = extractPlaceId(url)
+    ? "Place ID terdeteksi. Pengunjung diarahkan ke form tulis ulasan di Google Search."
+    : remote === "checking"
+      ? "Mengecek link..."
+      : remote === "ok"
+        ? "Place ID ditemukan. Pengunjung diarahkan ke form tulis ulasan di Google Search."
+        : "Belum terdeteksi place ID, link dibuka apa adanya. Buka Panduan untuk cara ambil link tulis ulasan.";
 
   if (done) {
     return <ActivationSuccess serial={serial} nama={nama.trim()} url={url.trim()} />;
@@ -154,9 +164,7 @@ export default function ActivationForm({ serial }: { serial: string }) {
             className="mt-2 w-full rounded-2xl border border-hairline bg-surface-alt px-4 py-3 font-mono text-sm text-ink placeholder:text-mid-gray focus:border-ink focus:ring-1 focus:ring-ink focus:outline-none"
           />
           <p id="akt-url-hint" className="mt-2 text-xs text-mid-gray">
-            {extractPlaceId(url)
-              ? "Place ID terdeteksi. Pengunjung diarahkan ke form tulis ulasan di Google Search."
-              : "Belum terdeteksi place ID, link dibuka apa adanya. Buka Panduan untuk cara ambil link tulis ulasan."}
+            {urlHint}
           </p>
 
           {panduanOpen && (

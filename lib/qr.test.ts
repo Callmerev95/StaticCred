@@ -75,6 +75,14 @@ describe("checkReviewLink", () => {
     expect(r.source).toBe("other");
   });
 
+  it("mengenali short link Google (g.page / maps.app.goo.gl)", () => {
+    expect(checkReviewLink("https://g.page/r/abc/review").source).toBe("google");
+    expect(checkReviewLink("https://maps.app.goo.gl/xyz").source).toBe("google");
+    expect(checkReviewLink("https://g.page/r/abc/review").hint).toBe(
+      "QR membuka link ini apa adanya (tanpa place ID)",
+    );
+  });
+
   it("trim spasi dan menolak string kosong / bukan URL", () => {
     expect(checkReviewLink("   ").ok).toBe(false);
     expect(checkReviewLink("bukan-url").ok).toBe(false);

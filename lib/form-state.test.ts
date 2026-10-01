@@ -52,6 +52,14 @@ describe("qrPayloadOf", () => {
     );
   });
 
+  it("direct memakai resolvedLink bila link belum punya place ID", () => {
+    const s = { ...defaultCardFormState(), reviewLink: "https://g.page/r/abc" };
+    const resolved =
+      "https://search.google.com/local/writereview?placeid=ChIJ149LSEexzS0RYOTs2W8-6NY";
+    expect(qrPayloadOf(s, "", resolved)).toBe(resolved);
+    expect(qrPayloadOf(s, "", "  ")).toBe("https://g.page/r/abc");
+  });
+
   it("blank memakai pola /r/G-XXXXXX", () => {
     const s = {
       ...defaultCardFormState(),

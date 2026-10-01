@@ -5,6 +5,7 @@
 import { headers } from "next/headers";
 import { kvAvailable } from "@/lib/kv";
 import { isGoogleReviewLink, isValidCardId } from "@/lib/qr";
+import { resolveReviewUrl } from "@/lib/resolve-review";
 import { toWriteReviewUrl } from "@/lib/review-url";
 import { isValidPin, hashPin } from "@/lib/pin";
 import { ACTIVATION_RATE_MAX, REGISTER_RATE_MAX, claimCard, getActiveCard, rateLimited, registerSerials, updateActiveCard, verifyCardPin } from "@/lib/store";
@@ -31,12 +32,12 @@ export async function activateCardAction(
   if (!isValidCardId(id)) return { ok: false, error: "Serial kartu tidak dikenal." };
 
   const nama = input.nama.trim();
-  const url = toWriteReviewUrl(input.url) ?? input.url.trim();
+  const pasted = input.url.trim();
   const pin = input.pin.trim();
   if (!nama || nama.length > 60) {
     return { ok: false, error: "Nama tempat usaha wajib diisi, maksimal 60 karakter." };
   }
-  if (!isGoogleReviewLink(url)) {
+  if (!isGoogleReviewLink(pasted)) {
     return {
       ok: false,
       error: "Link harus URL Google Maps atau Google Review yang valid.",
@@ -53,6 +54,7 @@ export async function activateCardAction(
     };
   }
 
+  const url = toWriteReviewUrl(pasted) ?? (await resolveReviewUrl(pasted)) ?? pasted;
   const result = await claimCard(id, { nama, url, pinHash: hashPin(pin) });
   if (result === "unavailable") {
     return { ok: false, error: "Layanan aktivasi belum terkonfigurasi di server ini." };
@@ -121,16 +123,17 @@ export async function updateCardAction(
   }
 
   const nama = input.nama.trim();
-  const url = toWriteReviewUrl(input.url) ?? input.url.trim();
+  const pasted = input.url.trim();
   if (!nama || nama.length > 60) {
     return { ok: false, error: "Nama tempat usaha wajib diisi, maksimal 60 karakter." };
   }
-  if (!isGoogleReviewLink(url)) {
+  if (!isGoogleReviewLink(pasted)) {
     return {
       ok: false,
       error: "Link harus URL Google Maps atau Google Review yang valid.",
     };
   }
+  const url = toWriteReviewUrl(pasted) ?? (await resolveReviewUrl(pasted)) ?? pasted;
 
   const patch: { nama: string; url: string; pinHash?: string } = { nama, url };
   const pinBaru = input.pinBaru?.trim() ?? "";

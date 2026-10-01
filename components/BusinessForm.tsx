@@ -15,11 +15,14 @@ import {
   type CardFormState,
   type FormMode,
 } from "@/lib/form-state";
+import { toWriteReviewUrl } from "@/lib/review-url";
 
 interface BusinessFormProps {
   state: CardFormState;
   onChange: (patch: Partial<CardFormState>) => void;
   appUrl: string;
+  resolvedLink?: string;
+  resolving?: boolean;
 }
 
 const MODES: Array<{ id: FormMode; label: string }> = [
@@ -84,7 +87,13 @@ function Toggle({
   );
 }
 
-export default function BusinessForm({ state, onChange, appUrl }: BusinessFormProps) {
+export default function BusinessForm({
+  state,
+  onChange,
+  appUrl,
+  resolvedLink = "",
+  resolving = false,
+}: BusinessFormProps) {
   const uid = useId();
   const activeIndex = Math.max(
     0,
@@ -92,6 +101,16 @@ export default function BusinessForm({ state, onChange, appUrl }: BusinessFormPr
   );
   const link = checkReviewLink(state.reviewLink);
   const hasLink = state.reviewLink.trim().length > 0;
+  const googleTarget = toWriteReviewUrl(state.reviewLink) || resolvedLink;
+  const hint = !hasLink
+    ? "Tempel link review Google atau TripAdvisor."
+    : !link.ok || link.source !== "google"
+      ? link.hint
+      : googleTarget
+        ? "QR menuju form tulis ulasan Google Search"
+        : resolving
+          ? "Mengecek link..."
+          : link.hint;
 
   const selectMode = (mode: FormMode) => {
     onChange({ mode });
@@ -291,7 +310,7 @@ export default function BusinessForm({ state, onChange, appUrl }: BusinessFormPr
                       : "text-ember"
                 }`}
               >
-                {!hasLink ? "Tempel link review Google atau TripAdvisor." : link.hint}
+                {!hasLink ? "Tempel link review Google atau TripAdvisor." : hint}
               </p>
             </div>
 

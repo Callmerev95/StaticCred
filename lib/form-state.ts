@@ -49,14 +49,16 @@ export function defaultCardFormState(): CardFormState {
 
 // Payload QR terdebounce: verbatim link vs pola /r/G-XXXXXX (ADR-0005).
 // appUrl diisi saat export, default origin browser.
+// resolvedLink: hasil auto-generate tujuan tulis ulasan (server, terdebounce).
 export function qrPayloadOf(
   state: CardFormState,
   appUrl: string = "",
+  resolvedLink: string = "",
 ): string {
   if (state.mode === "blank") {
     const id = state.cardId.trim();
     return id ? blankCardUrl(appUrl, id) : "";
   }
   const link = state.reviewLink.trim();
-  return toWriteReviewUrl(link) ?? link;
+  return toWriteReviewUrl(link) || resolvedLink.trim() || link;
 }

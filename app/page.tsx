@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import BusinessForm from "@/components/BusinessForm";
 import LivePreview from "@/components/LivePreview";
 import ThemeToggle from "@/components/ThemeToggle";
@@ -12,16 +12,61 @@ import {
 } from "@/lib/form-state";
 import { useDebouncedValue } from "@/lib/use-debounced-value";
 import { appBaseUrl } from "@/lib/app-url";
+import { isGoogleReviewLink } from "@/lib/qr";
+import { toWriteReviewUrl } from "@/lib/review-url";
 import type { SizeId } from "@/lib/sizes";
 
 export default function Home() {
   const [form, setForm] = useState<CardFormState>(defaultCardFormState);
   const [sizeId, setSizeId] = useState<SizeId>("pvc-h");
+  const [resolved, setResolved] = useState<{ link: string; url: string } | null>(
+    null,
+  );
   const patch = (p: Partial<CardFormState>) =>
     setForm((s) => ({ ...s, ...p }));
 
+  const { reviewLink, mode } = form;
+  const directLink = mode === "direct" ? reviewLink.trim() : "";
+  const needsResolve =
+    Boolean(directLink) &&
+    !toWriteReviewUrl(directLink) &&
+    isGoogleReviewLink(directLink);
+  const resolvedLink =
+    needsResolve && resolved && resolved.link === directLink ? resolved.url : "";
+  const resolving = needsResolve && !(resolved && resolved.link === directLink);
+
+  useEffect(() => {
+    if (!needsResolve) return;
+    let cancelled = false;
+    const timer = setTimeout(async () => {
+      let out = "";
+      try {
+        const res = await fetch("/api/review-link", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ url: directLink }),
+        });
+        const data = (await res.json()) as {
+          ok?: boolean;
+          reviewUrl?: string | null;
+        };
+        if (res.ok && data.ok && data.reviewUrl) out = data.reviewUrl;
+      } catch {
+        // Resolver gagal: payload tetap link apa adanya.
+      }
+      if (!cancelled) setResolved({ link: directLink, url: out });
+    }, 700);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [needsResolve, directLink]);
+
   const appUrl = appBaseUrl();
-  const livePayload = useMemo(() => qrPayloadOf(form, appUrl), [form, appUrl]);
+  const livePayload = useMemo(
+    () => qrPayloadOf(form, appUrl, resolvedLink),
+    [form, appUrl, resolvedLink],
+  );
   const qrPayload = useDebouncedValue(livePayload, QR_DEBOUNCE_MS);
 
   return (
@@ -42,7 +87,13 @@ export default function Home() {
         </p>
       </div>
       <div className="grid items-start gap-6 lg:grid-cols-[400px_1fr]">
-        <BusinessForm state={form} onChange={patch} appUrl={appUrl} />
+        <BusinessForm
+          state={form}
+          onChange={patch}
+          appUrl={appUrl}
+          resolvedLink={resolvedLink}
+          resolving={resolving}
+        />
         <div className="lg:sticky lg:top-6">
           <LivePreview
             form={form}

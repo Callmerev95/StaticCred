@@ -5,6 +5,7 @@ import { useState } from "react";
 import { updateCardAction, verifyPinAction } from "@/lib/actions";
 import { BUSINESS_NAME_MAX } from "@/lib/form-state";
 import { extractPlaceId } from "@/lib/review-url";
+import { useResolvedStatus } from "./useResolvedStatus";
 
 export default function ManagePanel({
   serial,
@@ -22,6 +23,7 @@ export default function ManagePanel({
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+  const remote = useResolvedStatus(url);
 
   const unlock = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -190,7 +192,11 @@ export default function ManagePanel({
         <p id="kelola-url-hint" className="mt-2 text-xs text-mid-gray">
           {extractPlaceId(url)
             ? "Place ID terdeteksi. Pengunjung diarahkan ke form tulis ulasan di Google Search."
-            : "Belum terdeteksi place ID, link dibuka apa adanya."}
+            : remote === "checking"
+              ? "Mengecek link..."
+              : remote === "ok"
+                ? "Place ID ditemukan. Pengunjung diarahkan ke form tulis ulasan di Google Search."
+                : "Belum terdeteksi place ID, link dibuka apa adanya."}
         </p>
 
         <label

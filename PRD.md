@@ -41,6 +41,8 @@ Referensi UI: `reference/input-QR.png`, `reference/input-QR-kosong.png`, `refere
 - [ ] Cetak Kosong: serial `G-`+6 tanpa I/L/O, langsung terdaftar di KV (Pending), tanpa nama toko di kartu.
 - [ ] Scan serial belum aktif → 307 ke `/r/[id]/activate?isNew=true`; serial aktif → interstitial, scan +1 sekali tanpa penyimpanan IP.
 - [ ] Tombol "Buka Ulasan" (interstitial) dan QR Link Langsung menuju `search.google.com/local/writereview?placeid=…` bila link memuat place ID `ChIJ…`; tanpa place ID link dibuka apa adanya (tanpa API key).
+- [ ] Tempel link Google Maps tanpa place ID → sistem meng-generate tujuan writereview otomatis (aktivasi, kelola, Link Langsung) dengan hint live "Mengecek link..."; resolver gagal/timeout → kartu tetap aktif dengan link apa adanya.
+- [ ] `POST /api/review-link` menolak link non-Google (400) dan membatasi 60 panggilan/jam/IP (429).
 - [ ] Aktivasi sukses → halaman "Kartu Berhasil Diaktifkan" + pengingat simpan PIN; balapan dua submit = first-wins.
 - [ ] ID format salah → 404; link tujuan non-Google ditolak server-side (bukan hanya klien).
 - [ ] PIN salah 5× → jeda 15 menit per serial; ≥10 aktivasi/jam/IP ditolak; `/manage` tak tampil sebelum PIN benar.

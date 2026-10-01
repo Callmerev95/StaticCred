@@ -49,7 +49,7 @@ export function checkReviewLink(raw: string): LinkCheck {
       hint: "Format link tidak valid, butuh https://",
     };
   }
-  if (host.includes("google.")) {
+  if (host.includes("google.") || isGoogleReviewLink(url)) {
     return {
       ok: true,
       source: "google",
