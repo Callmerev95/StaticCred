@@ -13,6 +13,7 @@ Route `/cards` (server, `force-dynamic`, `robots index false`):
 - Akses di balik PIN admin global dari env `ADMIN_PIN` (server-only). Tanpa cookie sesi valid, halaman hanya menampilkan form PIN; benar → cookie httpOnly `cards_admin = ts.hmac(ADMIN_PIN)` 12 jam, `timingSafeEqual` di kedua sisi.
 - Tanpa `ADMIN_PIN` atau tanpa KV, halaman menampilkan kondisi jujur (belum dikonfigurasi), bukan daftar kosong.
 - Data dari `listCards` (`lib/store.ts`): `SCAN card:*` + `SCAN pend:*` (cursor bertahap), dedupe dengan aktif menang (klaim tidak menghapus `pend:`), `GET` batch via pipeline. Kolom "terakhir scan" dari referensi sengaja dihilangkan: skema tidak menyimpannya dan satu write tambahan per scan tidak dibenarkan kebutuhannya.
+- Pipeline wajib ke endpoint `<url>/pipeline` Upstash; array yang dikirim ke base URL ditolak server ("unsupported arg type"). Perintah tunggal (GET/SCAN) tetap ke base URL. Database gagal dibaca menampilkan error state jujur + tombol muat ulang, bukan crash digest.
 - Statistik (Total Terbit, Aktif, Pending, Total Scan) dan filter Semua/Aktif/Pending dihitung dari hasil yang sama, tanpa fetch ulang.
 - Copas link aktivasi via tombol Salin Link per baris pending.
 

@@ -291,4 +291,36 @@ describe("listCards", () => {
     expect(await listCards()).toEqual([]);
     expect(seen).toEqual([]);
   });
+
+  it("pipeline ke /pipeline, perintah tunggal ke base (Upstash)", async () => {
+    setEnv();
+    const urls: string[] = [];
+    const store = new Map<string, string>([
+      ["card:G-AAAAAA", JSON.stringify({ v: 1, nama: "T", url: "u", pinHash: "h", createdAt: "t", updatedAt: "t" })],
+    ]);
+    globalThis.fetch = (async (url: unknown, init?: { body?: unknown }) => {
+      urls.push(String(url));
+      const body = JSON.parse(String(init?.body)) as Cmd | Cmd[];
+      // Tiru Upstash asli: base menolak body array.
+      if (Array.isArray(body[0]) && !String(url).endsWith("/pipeline")) {
+        return Response.json(
+          { error: 'ERR unsupported arg type: "[": json.Delim' },
+          { status: 400 },
+        );
+      }
+      if (String(url).endsWith("/pipeline")) {
+        return Response.json(
+          (body as Cmd[]).map((cmd) => ({
+            result: cmd[0] === "GET" ? (store.get(String(cmd[1])) ?? null) : null,
+          })),
+        );
+      }
+      if (body[0] === "SCAN") return Response.json({ result: ["0", ["card:G-AAAAAA"]] });
+      return Response.json({ result: null });
+    }) as unknown as typeof fetch;
+    const cards = await listCards();
+    expect(cards).toHaveLength(1);
+    expect(urls.some((u) => u.endsWith("/pipeline"))).toBe(true);
+    expect(urls.some((u) => !u.endsWith("/pipeline"))).toBe(true);
+  });
 });

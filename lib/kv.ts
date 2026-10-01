@@ -90,12 +90,16 @@ export async function kvScan(pattern: string): Promise<string[]> {
 }
 
 // Pipeline: banyak perintah dalam satu request (mis. daftar 50 serial batch).
+// Upstash REST mengharuskan pipeline ke `<url>/pipeline`; array yang dikirim
+// ke base URL ditolak ("unsupported arg type"). Perintah tunggal (GET/SCAN)
+// tetap ke base URL.
 export async function kvExecAll(
   cmds: Array<Array<string | number>>,
 ): Promise<Array<unknown>> {
   const env = readEnv();
   if (!env || cmds.length === 0) return [];
-  const res = await fetch(env.url, {
+  const url = `${env.url.replace(/\/+$/, "")}/pipeline`;
+  const res = await fetch(url, {
     method: "POST",
     headers: { Authorization: `Bearer ${env.token}` },
     body: JSON.stringify(cmds),
