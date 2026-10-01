@@ -6,12 +6,7 @@ import { BUSINESS_NAME_MAX } from "@/lib/form-state";
 import { extractPlaceId } from "@/lib/review-url";
 import { ActivationSuccess } from "./views";
 import { useResolvedStatus } from "./useResolvedStatus";
-
-const PANDUAN_STEPS = [
-  "Cari nama toko Anda di Google Search, klik kanan tombol Tulis ulasan, lalu pilih Salin tautan dan tempel di kolom ini.",
-  "Atau buka Place ID Finder resmi Google (developers.google.com/maps/documentation/places/find-place-id), cari nama toko, lalu susun link https://search.google.com/local/writereview?placeid=PLACE_ID.",
-  "Link dengan place ID langsung mengarahkan pengunjung ke form tulis ulasan di Google Search.",
-];
+import { PanduanPanel, PanduanToggle } from "./Panduan";
 
 export default function ActivationForm({ serial }: { serial: string }) {
   const [nama, setNama] = useState("");
@@ -137,19 +132,15 @@ export default function ActivationForm({ serial }: { serial: string }) {
                 href="https://www.google.com/maps"
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex min-h-9 items-center rounded-full border border-hairline px-3 py-1.5 text-xs font-semibold text-ink transition-colors hover:bg-surface-alt focus-visible:ring-2 focus-visible:ring-ink focus-visible:outline-none"
+                className="inline-flex min-h-9 items-center rounded-full border border-hairline px-3 py-1.5 text-xs font-semibold whitespace-nowrap text-ink transition-colors hover:bg-surface-alt focus-visible:ring-2 focus-visible:ring-ink focus-visible:outline-none"
               >
                 Cari di Google Maps
               </a>
-              <button
-                type="button"
-                aria-expanded={panduanOpen}
-                aria-controls="akt-panduan"
-                onClick={() => setPanduanOpen((v) => !v)}
-                className="inline-flex min-h-9 items-center rounded-full border border-hairline px-3 py-1.5 text-xs font-semibold text-ink transition-colors hover:bg-surface-alt focus-visible:ring-2 focus-visible:ring-ink focus-visible:outline-none"
-              >
-                Panduan
-              </button>
+              <PanduanToggle
+                id="akt-panduan"
+                open={panduanOpen}
+                onToggle={() => setPanduanOpen((v) => !v)}
+              />
             </div>
           </div>
           <input
@@ -157,7 +148,7 @@ export default function ActivationForm({ serial }: { serial: string }) {
             type="url"
             inputMode="url"
             autoComplete="off"
-            placeholder="https://search.google.com/local/writereview?placeid=ChIJ..."
+            placeholder="https://www.google.com/maps/place/…"
             value={url}
             onChange={(e) => setUrl(e.target.value)}
             aria-describedby="akt-url-hint"
@@ -167,19 +158,7 @@ export default function ActivationForm({ serial }: { serial: string }) {
             {urlHint}
           </p>
 
-          {panduanOpen && (
-            <div
-              id="akt-panduan"
-              className="mt-3 rounded-2xl border border-hairline bg-canvas p-4"
-            >
-              <p className="text-sm font-semibold">Cara ambil link ulasan Google:</p>
-              <ol className="mt-2 list-decimal space-y-1.5 pl-5 text-sm leading-relaxed text-deep-gray">
-                {PANDUAN_STEPS.map((step) => (
-                  <li key={step}>{step}</li>
-                ))}
-              </ol>
-            </div>
-          )}
+          <PanduanPanel id="akt-panduan" open={panduanOpen} />
         </div>
 
         <hr className="my-6 border-hairline" />

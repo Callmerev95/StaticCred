@@ -6,6 +6,7 @@ import { updateCardAction, verifyPinAction } from "@/lib/actions";
 import { BUSINESS_NAME_MAX } from "@/lib/form-state";
 import { extractPlaceId } from "@/lib/review-url";
 import { useResolvedStatus } from "./useResolvedStatus";
+import { PanduanPanel, PanduanToggle } from "./Panduan";
 
 export default function ManagePanel({
   serial,
@@ -23,6 +24,7 @@ export default function ManagePanel({
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+  const [panduanOpen, setPanduanOpen] = useState(false);
   const remote = useResolvedStatus(url);
 
   const unlock = async (e: React.FormEvent) => {
@@ -174,12 +176,19 @@ export default function ManagePanel({
           className="mt-2 w-full rounded-2xl border border-hairline bg-surface-alt px-4 py-3 text-sm text-ink placeholder:text-mid-gray focus:border-ink focus:ring-1 focus:ring-ink focus:outline-none"
         />
 
-        <label
-          htmlFor="kelola-url"
-          className="mt-5 block font-mono text-xs font-semibold tracking-widest text-ink uppercase"
-        >
-          Link ulasan Google
-        </label>
+        <div className="mt-5 flex items-center justify-between gap-3">
+          <label
+            htmlFor="kelola-url"
+            className="font-mono text-xs font-semibold tracking-widest text-ink uppercase"
+          >
+            Link ulasan Google
+          </label>
+          <PanduanToggle
+            id="kelola-panduan"
+            open={panduanOpen}
+            onToggle={() => setPanduanOpen((v) => !v)}
+          />
+        </div>
         <input
           id="kelola-url"
           type="url"
@@ -198,6 +207,8 @@ export default function ManagePanel({
                 ? "Place ID ditemukan. Pengunjung diarahkan ke form tulis ulasan di Google Search."
                 : "Belum terdeteksi place ID, link dibuka apa adanya."}
         </p>
+
+        <PanduanPanel id="kelola-panduan" open={panduanOpen} />
 
         <label
           htmlFor="kelola-pin-baru"

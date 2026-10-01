@@ -16,6 +16,7 @@ import {
   type FormMode,
 } from "@/lib/form-state";
 import { toWriteReviewUrl } from "@/lib/review-url";
+import { PanduanPanel, PanduanToggle } from "@/components/activation/Panduan";
 
 interface BusinessFormProps {
   state: CardFormState;
@@ -43,7 +44,7 @@ function FieldLabel({
     <div className="mb-2 flex items-baseline justify-between gap-3">
       <label
         htmlFor={htmlFor}
-        className="font-mono text-xs font-medium tracking-widest text-ink uppercase"
+        className="shrink-0 font-mono text-xs font-medium tracking-widest text-ink whitespace-nowrap uppercase"
       >
         {children}
       </label>
@@ -149,6 +150,7 @@ export default function BusinessForm({
     available: boolean;
   } | null>(null);
   const [printWarning, setPrintWarning] = useState<string | null>(null);
+  const [panduanOpen, setPanduanOpen] = useState(false);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- baca origin sekali saat mount (browser-only, SSR aman)
@@ -276,14 +278,21 @@ export default function BusinessForm({
               <FieldLabel
                 htmlFor={linkInputId}
                 aside={
-                  <a
-                    href="https://www.google.com/maps"
-                    target="_blank"
-                    rel="noreferrer"
-                    className="rounded-full border border-hairline px-3 py-1.5 text-xs font-semibold text-ink transition-colors hover:bg-surface-alt focus-visible:ring-2 focus-visible:ring-ink focus-visible:outline-none"
-                  >
-                    Cari di Google Maps
-                  </a>
+                  <span className="flex flex-wrap items-center justify-end gap-2">
+                    <a
+                      href="https://www.google.com/maps"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="whitespace-nowrap rounded-full border border-hairline px-3 py-1.5 text-xs font-semibold text-ink transition-colors hover:bg-surface-alt focus-visible:ring-2 focus-visible:ring-ink focus-visible:outline-none"
+                    >
+                      Cari di Google Maps
+                    </a>
+                    <PanduanToggle
+                      id={`${uid}-panduan`}
+                      open={panduanOpen}
+                      onToggle={() => setPanduanOpen((v) => !v)}
+                    />
+                  </span>
                 }
               >
                 Link review Google Maps <span aria-hidden="true">*</span>
@@ -293,7 +302,7 @@ export default function BusinessForm({
                 type="url"
                 inputMode="url"
                 autoComplete="off"
-                placeholder="https://search.google.com/local/writereview?placeid=…"
+                placeholder="https://www.google.com/maps/place/…"
                 value={state.reviewLink}
                 onChange={(e) => onChange({ reviewLink: e.target.value })}
                 aria-describedby={`${uid}-link-hint`}
@@ -312,6 +321,7 @@ export default function BusinessForm({
               >
                 {!hasLink ? "Tempel link review Google atau TripAdvisor." : hint}
               </p>
+              <PanduanPanel id={`${uid}-panduan`} open={panduanOpen} />
             </div>
 
             <div>
