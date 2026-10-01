@@ -71,18 +71,6 @@ export default function Home() {
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-6xl flex-col gap-6 px-4 py-8 sm:px-6">
-      <div className="flex flex-col gap-2">
-        <p className="w-fit rounded-full border border-hairline bg-paper px-3 py-1 font-mono text-xs text-mid-gray">
-          Canvas native · 300 DPI · Cetak lokal
-        </p>
-        <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
-          StaticCred Review Card Printer
-        </h1>
-        <p className="max-w-xl text-sm leading-relaxed text-deep-gray">
-          Paste link review Google / TripAdvisor, atur kartu di live preview,
-          lalu download PNG atau PDF siap cetak.
-        </p>
-      </div>
       <div className="grid items-start gap-6 lg:grid-cols-[400px_1fr]">
         <div className="flex flex-col gap-6">
           <BusinessForm
@@ -94,7 +82,7 @@ export default function Home() {
           />
           <LogoQrForm state={form} onChange={patch} />
         </div>
-        <div className="lg:sticky lg:top-6">
+        <div className="lg:sticky lg:top-20">
           <LivePreview
             form={form}
             qrPayload={qrPayload}
