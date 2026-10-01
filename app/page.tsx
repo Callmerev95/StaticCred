@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import BusinessForm from "@/components/BusinessForm";
 import LivePreview from "@/components/LivePreview";
+import LogoQrForm from "@/components/LogoQrForm";
 import ThemeToggle from "@/components/ThemeToggle";
 import {
   defaultCardFormState,
@@ -87,13 +88,16 @@ export default function Home() {
         </p>
       </div>
       <div className="grid items-start gap-6 lg:grid-cols-[400px_1fr]">
-        <BusinessForm
-          state={form}
-          onChange={patch}
-          appUrl={appUrl}
-          resolvedLink={resolvedLink}
-          resolving={resolving}
-        />
+        <div className="flex flex-col gap-6">
+          <BusinessForm
+            state={form}
+            onChange={patch}
+            appUrl={appUrl}
+            resolvedLink={resolvedLink}
+            resolving={resolving}
+          />
+          <LogoQrForm state={form} onChange={patch} />
+        </div>
         <div className="lg:sticky lg:top-6">
           <LivePreview
             form={form}

@@ -14,6 +14,9 @@ function drawWithMock() {
       get(_t, p) {
         if (p === "measureText") return () => ({ width: 40 });
         if (p === "canvas") return undefined;
+        if (p === "createLinearGradient") {
+          return () => ({ addColorStop: () => {} });
+        }
         if (typeof p === "string") {
           return (..._a: never[]) => {
             calls.push(`${p}:${JSON.stringify(_a).length}`);

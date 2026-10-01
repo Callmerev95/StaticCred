@@ -25,6 +25,7 @@ export interface CardFormState {
   bleed: boolean;
   texts: CardTextOverrides;
   textsOpen: boolean;
+  logoDataUrl: string;
 }
 
 // Debounce payload QR agar preview tidak render full-res tiap keystroke (ADR-0002).
@@ -44,6 +45,7 @@ export function defaultCardFormState(): CardFormState {
     bleed: false,
     texts: { title: "", badge: "", cta: "", subCta: "" },
     textsOpen: false,
+    logoDataUrl: "",
   };
 }
 

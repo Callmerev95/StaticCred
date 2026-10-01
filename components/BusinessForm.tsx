@@ -237,7 +237,7 @@ export default function BusinessForm({
           aria-hidden="true"
           className="flex h-8 w-8 items-center justify-center rounded-xl bg-ink font-mono text-sm font-semibold text-paper"
         >
-          2
+          1
         </span>
         <h2 id={`${uid}-heading`} className="text-lg font-semibold">
           Data Usaha {"&"} Link Review

@@ -21,6 +21,9 @@ function stubCanvas() {
         get(_t, p) {
           if (p === "measureText") return () => ({ width: 40 });
           if (p === "canvas") return undefined;
+          if (p === "createLinearGradient") {
+            return () => ({ addColorStop: () => {} });
+          }
           if (typeof p === "string") {
             return () => {
               calls.push(p);

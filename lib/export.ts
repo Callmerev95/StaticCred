@@ -10,11 +10,13 @@ import type { CardFormState } from "./form-state";
 export const QR_PAYLOAD_WARN_LEN = 200;
 
 // Opsi gambar dari state form + payload terdebounce. Satu sumber untuk
-// preview (#6) dan export agar keduanya tidak pernah drift.
+// preview (#6) dan export agar keduanya tidak pernah drift. logo di-pass
+// terpisah karena gambar harus sudah termuat (loadCardLogo) saat ekspor.
 export function exportDrawOpts(
   form: CardFormState,
   qrPayload: string,
   dims: { widthPx: number; heightPx: number },
+  logo: HTMLImageElement | null = null,
 ): DrawCardOpts {
   const t = form.texts;
   return {
@@ -28,6 +30,7 @@ export function exportDrawOpts(
     showSerial: form.showSerial,
     cardId: form.cardId,
     bleed: form.bleed,
+    logo,
     texts: {
       ...(t.title ? { title: t.title } : {}),
       ...(t.badge ? { badge: t.badge } : {}),

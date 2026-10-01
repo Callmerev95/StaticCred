@@ -1,75 +1,118 @@
 // Token Tema Kartu untuk hasil cetak. Sumbu independen dari Tema Aplikasi:
 // canvas menggambar piksel sendiri tanpa membaca CSS. Lihat ADR-0004,
 // DESIGN.md § Card Themes.
+// Nilai diukur dari piksel reference/google-lightmode.png dan
+// reference/google-darkmode.png (u = 9,76 px di mockup).
 
 export type CardThemeId = "dark" | "google";
 
 export interface CardTheme {
   id: CardThemeId;
+  // Ujung terang gradien latar; dipakai tes kontras sebagai kasus terburuk.
   bg: string;
+  bgFrom: string;
+  bgTo: string;
   heading: string;
   body: string;
   muted: string;
   star: string;
   hairline: string;
+  verified: string;
   badgeFg: string;
+  chipBg: string;
+  chipBorder: string | null;
+  chipShadow: boolean;
   pillBg: string;
   pillFg: string;
-  nfcFg: string;
+  nfcIcon: string;
+  qrCardBg: string;
+  qrCardBorder: string | null;
+  qrCardShadow: string | null;
+  qrPanel: string;
   qrFg: string;
   qrBg: string;
-  qrBoxed: boolean;
-  qrBoxBorder: string | null;
-  ctaBg: string | null;
+  qrAccent: string;
+  ctaBg: string;
   ctaFg: string;
-  ctaInBox: string;
-  ctaOutline: boolean;
+  cardBorder: string | null;
+  serial: string;
+  poweredBase: string;
+  poweredBrand: string;
 }
 
-// Biru sampel piksel referensi: badge #3070E0, pill CTA #3871E0.
-// QR selalu modul gelap di atas bidang terang, kedua tema. ECC H.
+// Strip pelangi tepi atas kartu QR: biru → hijau → emas (tanpa merah).
+export const QR_STRIP_STOPS: ReadonlyArray<readonly [number, string]> = [
+  [0, "#4285F4"],
+  [0.5, "#34A853"],
+  [1, "#FBBC04"],
+] as const;
+
+export const VERIFIED_LABEL = "Google Verified";
+
 export const CARD_THEMES: Record<CardThemeId, CardTheme> = {
   dark: {
     id: "dark",
-    bg: "#0a0a0a",
-    heading: "#fafafa",
-    body: "#d4d4d4",
-    muted: "#a3a3a3",
-    star: "#FBBC04",
-    hairline: "rgba(255,255,255,0.16)",
-    badgeFg: "#a3a3a3",
-    pillBg: "rgba(255,255,255,0.14)",
-    pillFg: "#fafafa",
-    nfcFg: "#FBBC04",
-    qrFg: "#0a0a0a",
-    qrBg: "#ffffff",
-    qrBoxed: true,
-    qrBoxBorder: null,
-    ctaBg: null,
-    ctaFg: "#a3a3a3",
-    ctaInBox: "#a3a3a3",
-    ctaOutline: true,
+    bg: "#161C2E",
+    bgFrom: "#161C2E",
+    bgTo: "#111726",
+    heading: "#FFFFFF",
+    body: "#CDD5E0",
+    muted: "#8995A8",
+    star: "#F2C14B",
+    hairline: "#1D2537",
+    verified: "#70A3F3",
+    badgeFg: "#FFFFFF",
+    chipBg: "#1F2839",
+    chipBorder: "#2E3A52",
+    chipShadow: false,
+    pillBg: "#1F2839",
+    pillFg: "#E9EEF7",
+    nfcIcon: "#70A3F3",
+    qrCardBg: "#111729",
+    qrCardBorder: "#1D2537",
+    qrCardShadow: null,
+    qrPanel: "#FFFFFF",
+    qrFg: "#111729",
+    qrBg: "#FFFFFF",
+    qrAccent: "#3663E3",
+    ctaBg: "#3663E3",
+    ctaFg: "#FFFFFF",
+    cardBorder: "rgba(255,255,255,0.16)",
+    serial: "#8995A8",
+    poweredBase: "#9AA5B8",
+    poweredBrand: "#FFFFFF",
   },
   google: {
     id: "google",
-    bg: "#ffffff",
-    heading: "#0a0a0a",
-    body: "#444746",
-    muted: "#5f6368",
-    star: "#FBBC04",
-    hairline: "#e5e5e5",
-    badgeFg: "#3070E0",
-    pillBg: "#f1f3f4",
-    pillFg: "#444746",
-    nfcFg: "#444746",
-    qrFg: "#0a0a0a",
-    qrBg: "#ffffff",
-    qrBoxed: true,
-    qrBoxBorder: "#e5e5e5",
-    ctaBg: "#3871E0",
-    ctaFg: "#ffffff",
-    ctaInBox: "#3871E0",
-    ctaOutline: false,
+    bg: "#FAFAFB",
+    bgFrom: "#FAFAFB",
+    bgTo: "#EEF1F3",
+    heading: "#111729",
+    body: "#4A5565",
+    muted: "#5F6B80",
+    star: "#F2C14B",
+    hairline: "#E4E7ED",
+    verified: "#3663E3",
+    badgeFg: "#111729",
+    chipBg: "#FFFFFF",
+    chipBorder: "rgba(17,23,41,0.06)",
+    chipShadow: true,
+    pillBg: "#F0F6FE",
+    pillFg: "#2A4DD0",
+    nfcIcon: "#2A4DD0",
+    qrCardBg: "#FFFFFF",
+    qrCardBorder: null,
+    qrCardShadow: "rgba(17,23,41,0.10)",
+    qrPanel: "#F8FAFC",
+    qrFg: "#111729",
+    qrBg: "#F8FAFC",
+    qrAccent: "#3663E3",
+    ctaBg: "#3663E3",
+    ctaFg: "#FFFFFF",
+    cardBorder: null,
+    serial: "#5F6B80",
+    poweredBase: "#64708A",
+    poweredBrand: "#364153",
   },
 };
 

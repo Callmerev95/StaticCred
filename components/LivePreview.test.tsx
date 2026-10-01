@@ -12,6 +12,9 @@ function createMockCtx() {
       get(_t, p) {
         if (p === "measureText") return () => ({ width: 40 });
         if (p === "canvas") return undefined;
+        if (p === "createLinearGradient" || p === "createRadialGradient") {
+          return () => ({ addColorStop: () => {} });
+        }
         if (typeof p === "string") {
           return (...args: unknown[]) => {
             calls.push({ method: p, args });

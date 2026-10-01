@@ -23,6 +23,7 @@ import {
   type SizeId,
 } from "@/lib/sizes";
 import type { CardFormState } from "@/lib/form-state";
+import { loadCardLogo } from "@/lib/logo";
 
 export type ZoomLevel = "75" | "100" | "fit";
 
@@ -46,6 +47,18 @@ export default function LivePreview({
   const [zoom, setZoom] = useState<ZoomLevel>("fit");
   const [renderError, setRenderError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [logoImg, setLogoImg] = useState<HTMLImageElement | null>(null);
+
+  // Logo diambil per data URL; hasil muat masuk ke deps redraw di bawah.
+  useEffect(() => {
+    let cancelled = false;
+    loadCardLogo(form.logoDataUrl).then((img) => {
+      if (!cancelled) setLogoImg(img);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [form.logoDataUrl]);
 
   const size = getSize(sizeId);
   const dims = exportDims(size, form.bleed);
@@ -64,7 +77,7 @@ export default function LivePreview({
         const ctx = canvas.getContext("2d");
         if (!ctx) throw new Error("Canvas 2D tidak tersedia di browser ini.");
         ctx.imageSmoothingQuality = "high";
-        drawCard(ctx, exportDrawOpts(form, qrPayload, dims));
+        drawCard(ctx, exportDrawOpts(form, qrPayload, dims, logoImg));
         setRenderError(null);
       } catch (e) {
         setRenderError(
@@ -76,7 +89,7 @@ export default function LivePreview({
       cancelled = true;
       cancelAnimationFrame(raf);
     };
-  }, [form, qrPayload, dims, hasPayload]);
+  }, [form, qrPayload, dims, hasPayload, logoImg]);
 
   useEffect(() => {
     if (!copied) return;
@@ -107,21 +120,31 @@ export default function LivePreview({
     setCopied(true);
   };
 
-  const downloadPng = () => {
-    const canvas = renderOffscreen(exportDrawOpts(form, qrPayload, dims));
-    assertExportDims(size, form.bleed, canvas);
-    downloadDataUrl(
-      canvas.toDataURL("image/png"),
-      exportFileName(sizeId, form.cardTheme, form.bleed, "png"),
-    );
+  const [pngBusy, setPngBusy] = useState(false);
+
+  const downloadPng = async () => {
+    setPngBusy(true);
+    try {
+      // Tunggu logo agar PNG identik dengan preview yang sedang tampil.
+      const logo = await loadCardLogo(form.logoDataUrl);
+      const canvas = renderOffscreen(exportDrawOpts(form, qrPayload, dims, logo));
+      assertExportDims(size, form.bleed, canvas);
+      downloadDataUrl(
+        canvas.toDataURL("image/png"),
+        exportFileName(sizeId, form.cardTheme, form.bleed, "png"),
+      );
+    } finally {
+      setPngBusy(false);
+    }
   };
 
   const [pdfBusy, setPdfBusy] = useState(false);
 
-  const downloadPdf = () => {
+  const downloadPdf = async () => {
     setPdfBusy(true);
     try {
-      const canvas = renderOffscreen(exportDrawOpts(form, qrPayload, dims));
+      const logo = await loadCardLogo(form.logoDataUrl);
+      const canvas = renderOffscreen(exportDrawOpts(form, qrPayload, dims, logo));
       assertExportDims(size, form.bleed, canvas);
       const page = pdfSizeMm(size, form.bleed);
       makePdf(
@@ -264,11 +287,11 @@ export default function LivePreview({
       <div className="grid gap-2 sm:grid-cols-2">
         <button
           type="button"
-          disabled={!hasPayload}
+          disabled={!hasPayload || pngBusy}
           onClick={downloadPng}
           className="min-h-12 rounded-full bg-ink px-5 text-sm font-semibold text-paper transition-opacity focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-40"
         >
-          Download PNG Siap Cetak (300 DPI)
+          {pngBusy ? "Menyiapkan PNG..." : "Download PNG Siap Cetak (300 DPI)"}
         </button>
         <button
           type="button"
