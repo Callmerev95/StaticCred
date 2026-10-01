@@ -46,13 +46,21 @@ describe("isValidCardId", () => {
 });
 
 describe("checkReviewLink", () => {
-  it("mendeteksi link Google + hint form bintang 5", () => {
+  it("mendeteksi link Google + hint tujuan tulis ulasan", () => {
     const r = checkReviewLink(
       "https://search.google.com/local/writereview?placeid=ChIJN1t_tDeuEmsRUsoyG8",
     );
     expect(r.ok).toBe(true);
     expect(r.source).toBe("google");
-    expect(r.hint).toContain("bintang 5");
+    expect(r.hint).toContain("tulis ulasan Google Search");
+  });
+
+  it("hint jujur saat Google link tanpa place ID", () => {
+    const r = checkReviewLink(
+      "https://www.google.com/maps/place/Kopi/@-6.2,106.8,17z/data=!4m2!3d1!4d2",
+    );
+    expect(r.ok).toBe(true);
+    expect(r.hint).toContain("apa adanya");
   });
 
   it("mendeteksi link TripAdvisor", () => {

@@ -2,6 +2,7 @@
 // dan export (#7). Lihat PRD.md S4, reference/input-QR*.png.
 import type { CardThemeId } from "./card-themes";
 import { blankCardUrl, generateCardId } from "./qr";
+import { toWriteReviewUrl } from "./review-url";
 
 export type FormMode = "direct" | "blank";
 
@@ -56,5 +57,6 @@ export function qrPayloadOf(
     const id = state.cardId.trim();
     return id ? blankCardUrl(appUrl, id) : "";
   }
-  return state.reviewLink.trim();
+  const link = state.reviewLink.trim();
+  return toWriteReviewUrl(link) ?? link;
 }

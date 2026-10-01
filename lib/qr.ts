@@ -1,5 +1,6 @@
 // Validator link review + ID kartu kosong. Murni, tanpa network.
 // Lihat CONTEXT.md (Serial, Link Langsung vs Cetak Kosong), ADR-0005.
+import { extractPlaceId } from "./review-url";
 
 export const CARD_ID_PREFIX = "G-";
 export const CARD_ID_LENGTH = 6;
@@ -53,7 +54,9 @@ export function checkReviewLink(raw: string): LinkCheck {
       ok: true,
       source: "google",
       url,
-      hint: "Langsung buka form ulasan bintang 5",
+      hint: extractPlaceId(url)
+        ? "QR menuju form tulis ulasan Google Search"
+        : "QR membuka link ini apa adanya (tanpa place ID)",
     };
   }
   if (host.includes("tripadvisor.")) {

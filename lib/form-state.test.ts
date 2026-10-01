@@ -41,6 +41,17 @@ describe("qrPayloadOf", () => {
     expect(qrPayloadOf(s)).toBe("https://google.com/x");
   });
 
+  it("direct dengan place ID di-rewrite ke form tulis ulasan Google Search", () => {
+    const s = {
+      ...defaultCardFormState(),
+      reviewLink:
+        "https://www.google.com/maps/place/?q=place_id:ChIJ149LSEexzS0RYOTs2W8-6NY",
+    };
+    expect(qrPayloadOf(s)).toBe(
+      "https://search.google.com/local/writereview?placeid=ChIJ149LSEexzS0RYOTs2W8-6NY",
+    );
+  });
+
   it("blank memakai pola /r/G-XXXXXX", () => {
     const s = {
       ...defaultCardFormState(),

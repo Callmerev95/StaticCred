@@ -13,6 +13,7 @@ Pakai Vercel KV/Upstash Redis sebagai satu-satunya storage mapping `serial → {
 - `/r/[id]`: belum aktif: 307 ke `/r/[id]/activate?isNew=true`. Aktif: halaman interstitial konfirmasi (nama toko + "Buka Ulasan" + "Ganti link"), scan dihitung sekali di sini tanpa menyimpan IP.
 - `/r/[id]/activate`: form aktivasi; sukses → halaman "Kartu Berhasil Diaktifkan" + pengingat simpan PIN. Link tujuan divalidasi server-side (pola Google Maps/Review), ID format salah → 404.
 - `/r/[id]/manage`: gerbang PIN server-side (hash scrypt), edit nama/link/PIN + tampil total scan.
+- **Tujuan kanonik**: link tujuan diarahkan ke form tulis ulasan di Google Search (`search.google.com/local/writereview?placeid=…`) selama URL memuat place ID (`ChIJ…`). Berlaku saat membaca (`/r/[id]`, Link Langsung) dan saat menulis (aktivasi/manage). Tanpa place ID, link dipakai apa adanya tanpa API key (lihat `lib/review-url.ts`).
 
 Aturan domain: aktivasi **lazy** (ID valid format apa pun bisa diaktifkan), tapi setiap ID yang dibuat di form ("ID Baru" maupun batch 50) langsung didaftarkan ke KV berstatus `pending` + label `BATCH-YYYY-MM-DD` agar stok tercetak terklaim sejak awal. Race first-wins. Anti-abuse: rate-limit counter IP di KV (≈10 aktivasi/jam/IP), lockout 5 gagal PIN → jeda 15 menit per serial, tanpa Turnstile, tanpa pemulihan PIN. Basis URL cetak = `NEXT_PUBLIC_APP_URL` (fallback origin) dengan peringatan UI bila origin ≠ env.
 

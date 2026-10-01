@@ -3,12 +3,13 @@
 import { useState } from "react";
 import { activateCardAction } from "@/lib/actions";
 import { BUSINESS_NAME_MAX } from "@/lib/form-state";
+import { extractPlaceId } from "@/lib/review-url";
 import { ActivationSuccess } from "./views";
 
 const PANDUAN_STEPS = [
-  "Buka aplikasi Google Maps atau cari nama toko Anda di Google Search.",
-  "Pilih tombol Minta Ulasan atau di tab Ulasan klik Bagikan formulir ulasan.",
-  "Atau klik Cari di Google Maps di atas untuk cari otomatis.",
+  "Cari nama toko Anda di Google Search, klik kanan tombol Tulis ulasan, lalu pilih Salin tautan dan tempel di kolom ini.",
+  "Atau buka Place ID Finder resmi Google (developers.google.com/maps/documentation/places/find-place-id), cari nama toko, lalu susun link https://search.google.com/local/writereview?placeid=PLACE_ID.",
+  "Link dengan place ID langsung mengarahkan pengunjung ke form tulis ulasan di Google Search.",
 ];
 
 export default function ActivationForm({ serial }: { serial: string }) {
@@ -72,7 +73,7 @@ export default function ActivationForm({ serial }: { serial: string }) {
           Aktivasi Kartu Review
         </h1>
         <p className="mt-2 text-sm text-deep-gray">
-          Masukkan link Google Maps untuk mengaktifkan kartu ini.
+          Tempel link ulasan toko untuk mengaktifkan kartu ini.
         </p>
       </header>
 
@@ -146,14 +147,16 @@ export default function ActivationForm({ serial }: { serial: string }) {
             type="url"
             inputMode="url"
             autoComplete="off"
-            placeholder="https://g.page/r/... atau https://maps.app.goo.gl/..."
+            placeholder="https://search.google.com/local/writereview?placeid=ChIJ..."
             value={url}
             onChange={(e) => setUrl(e.target.value)}
             aria-describedby="akt-url-hint"
             className="mt-2 w-full rounded-2xl border border-hairline bg-surface-alt px-4 py-3 font-mono text-sm text-ink placeholder:text-mid-gray focus:border-ink focus:ring-1 focus:ring-ink focus:outline-none"
           />
           <p id="akt-url-hint" className="mt-2 text-xs text-mid-gray">
-            Tempel link dari tombol Bagikan di Google Maps.
+            {extractPlaceId(url)
+              ? "Place ID terdeteksi. Pengunjung diarahkan ke form tulis ulasan di Google Search."
+              : "Belum terdeteksi place ID, link dibuka apa adanya. Buka Panduan untuk cara ambil link tulis ulasan."}
           </p>
 
           {panduanOpen && (
@@ -228,7 +231,7 @@ export default function ActivationForm({ serial }: { serial: string }) {
       </form>
 
       <p className="text-center font-mono text-xs text-mid-gray">
-        Format review Google Maps
+        Tujuan akhir: form tulis ulasan Google Search
       </p>
     </main>
   );

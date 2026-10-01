@@ -69,10 +69,11 @@ describe("BusinessForm", () => {
     expect(screen.getByText("10/60 karakter")).toBeDefined();
     fireEvent.change(screen.getByLabelText(/Link review Google Maps/), {
       target: {
-        value: "https://search.google.com/local/writereview?placeid=ChIJ1",
+        value:
+          "https://www.google.com/maps/place/?q=place_id:ChIJ149LSEexzS0RYOTs2W8-6NY",
       },
     });
-    expect(screen.getByText(/bintang 5/)).toBeDefined();
+    expect(screen.getByText(/tulis ulasan Google Search/)).toBeDefined();
   });
 
   it("collapsible Ubah Teks Kartu membuka empat field", () => {

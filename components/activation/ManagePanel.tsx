@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { updateCardAction, verifyPinAction } from "@/lib/actions";
 import { BUSINESS_NAME_MAX } from "@/lib/form-state";
+import { extractPlaceId } from "@/lib/review-url";
 
 export default function ManagePanel({
   serial,
@@ -183,8 +184,14 @@ export default function ManagePanel({
           inputMode="url"
           value={url}
           onChange={(e) => setUrl(e.target.value)}
+          aria-describedby="kelola-url-hint"
           className="mt-2 w-full rounded-2xl border border-hairline bg-surface-alt px-4 py-3 font-mono text-sm text-ink placeholder:text-mid-gray focus:border-ink focus:ring-1 focus:ring-ink focus:outline-none"
         />
+        <p id="kelola-url-hint" className="mt-2 text-xs text-mid-gray">
+          {extractPlaceId(url)
+            ? "Place ID terdeteksi. Pengunjung diarahkan ke form tulis ulasan di Google Search."
+            : "Belum terdeteksi place ID, link dibuka apa adanya."}
+        </p>
 
         <label
           htmlFor="kelola-pin-baru"

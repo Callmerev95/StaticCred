@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { kvAvailable } from "@/lib/kv";
 import { isValidCardId } from "@/lib/qr";
 import { getActiveCard, recordScan } from "@/lib/store";
+import { toWriteReviewUrl } from "@/lib/review-url";
 import { Interstitial, UnavailableView } from "@/components/activation/views";
 
 export const dynamic = "force-dynamic";
@@ -36,5 +37,6 @@ export default async function CardRoute({
 
   await recordScan(serial);
 
-  return <Interstitial serial={serial} nama={card.nama} url={card.url} />;
+  const target = toWriteReviewUrl(card.url) ?? card.url;
+  return <Interstitial serial={serial} nama={card.nama} url={target} />;
 }

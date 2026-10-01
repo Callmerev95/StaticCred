@@ -5,6 +5,7 @@
 import { headers } from "next/headers";
 import { kvAvailable } from "@/lib/kv";
 import { isGoogleReviewLink, isValidCardId } from "@/lib/qr";
+import { toWriteReviewUrl } from "@/lib/review-url";
 import { isValidPin, hashPin } from "@/lib/pin";
 import { ACTIVATION_RATE_MAX, REGISTER_RATE_MAX, claimCard, getActiveCard, rateLimited, registerSerials, updateActiveCard, verifyCardPin } from "@/lib/store";
 
@@ -30,7 +31,7 @@ export async function activateCardAction(
   if (!isValidCardId(id)) return { ok: false, error: "Serial kartu tidak dikenal." };
 
   const nama = input.nama.trim();
-  const url = input.url.trim();
+  const url = toWriteReviewUrl(input.url) ?? input.url.trim();
   const pin = input.pin.trim();
   if (!nama || nama.length > 60) {
     return { ok: false, error: "Nama tempat usaha wajib diisi, maksimal 60 karakter." };
@@ -120,7 +121,7 @@ export async function updateCardAction(
   }
 
   const nama = input.nama.trim();
-  const url = input.url.trim();
+  const url = toWriteReviewUrl(input.url) ?? input.url.trim();
   if (!nama || nama.length > 60) {
     return { ok: false, error: "Nama tempat usaha wajib diisi, maksimal 60 karakter." };
   }

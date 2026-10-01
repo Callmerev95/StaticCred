@@ -11,6 +11,7 @@ Single-context. Baca file ini + `docs/adr/` sebelum mengerjakan kode.
 - **Pending**: serial sudah terdaftar (dibuat via ID Baru / batch) tetapi belum diisi tujuan ulasannya.
 - **Halaman Aktivasi**: `/r/<serial>/activate`, form yang dilihat pembeli saat scan pertama. Sukses → halaman "Kartu Berhasil Diaktifkan".
 - **Interstitial**: `/r/<serial>` saat kartu aktif: konfirmasi nama toko + tombol "Buka Ulasan" + "Ganti link". Scan dihitung sekali di sini.
+- **Tujuan Tulis Ulasan**: URL kanonik `search.google.com/local/writereview?placeid=…` (form tulis ulasan di Google Search, bukan Google Maps). Link yang memuat place ID `ChIJ…` otomatis di-rewrite ke tujuan ini saat dibaca maupun ditulis (`lib/review-url.ts`); tanpa place ID, link dipakai apa adanya.
 - **Kelola Kartu**: `/r/<serial>/manage`, gerbang PIN untuk mengubah nama/link/PIN setelah aktif. Bukan dashboard semua kartu.
 - **PIN Keamanan**: 4–8 angka, hash di KV, kredensial pemilik kartu. Tanpa pemulihan: lupa PIN = link tak bisa diubah.
 - **Batch**: kelompok serial yang dibuat bersamaan, berlabel `BATCH-YYYY-MM-DD`, ikut diekspor ke CSV.
