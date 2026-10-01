@@ -3,6 +3,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { BTN_PRIMARY, ERROR_BOX, LABEL_EYEBROW, LABEL_FIELD } from "@/lib/ui-classes";
 
 export default function PinGate({ unconfigured }: { unconfigured: boolean }) {
   const router = useRouter();
@@ -39,7 +40,7 @@ export default function PinGate({ unconfigured }: { unconfigured: boolean }) {
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-md flex-col justify-center px-5 py-10">
       <section className="rounded-3xl border border-hairline bg-paper p-6 shadow-sm">
-        <p className="font-mono text-xs font-semibold tracking-widest text-mid-gray uppercase">
+        <p className={LABEL_EYEBROW}>
           Area pemilik
         </p>
         <h1 className="mt-2 text-2xl font-semibold">Daftar Kartu QR</h1>
@@ -54,10 +55,7 @@ export default function PinGate({ unconfigured }: { unconfigured: boolean }) {
           </p>
         ) : (
           <form onSubmit={submit} className="mt-5">
-            <label
-              htmlFor="cards-pin"
-              className="font-mono text-xs font-medium tracking-widest text-ink uppercase"
-            >
+            <label htmlFor="cards-pin" className={LABEL_FIELD}>
               PIN admin
             </label>
             <input
@@ -71,14 +69,14 @@ export default function PinGate({ unconfigured }: { unconfigured: boolean }) {
               className="mt-2 w-full rounded-2xl border border-hairline bg-surface-alt px-4 py-3 text-sm text-ink placeholder:text-mid-gray focus:border-ink focus:ring-1 focus:ring-ink focus:outline-none"
             />
             {error && (
-              <p role="alert" className="mt-2 text-sm text-ember">
+              <p role="alert" className={ERROR_BOX}>
                 {error}
               </p>
             )}
             <button
               type="submit"
               disabled={busy || pin.trim().length === 0}
-              className="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-full bg-ink px-5 text-sm font-semibold text-paper transition-opacity focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-40"
+              className={`mt-4 ${BTN_PRIMARY}`}
             >
               {busy ? "Memeriksa..." : "Buka daftar kartu"}
             </button>

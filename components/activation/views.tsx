@@ -2,12 +2,18 @@
 // Dipakai app/r/[id]/* dan ActivationForm (client) tanpa duplikasi copy.
 
 import Link from "next/link";
+import {
+  BTN_PRIMARY,
+  BTN_SECONDARY,
+  LABEL_EYEBROW,
+  PILL_META,
+} from "@/lib/ui-classes";
 
 export function UnavailableView({ serial }: { serial?: string }) {
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-md flex-col justify-center px-5 py-10">
       <section className="rounded-3xl border border-hairline bg-paper p-6 shadow-sm">
-        <p className="font-mono text-xs font-semibold tracking-widest text-mid-gray uppercase">
+        <p className={LABEL_EYEBROW}>
           Aktivasi belum aktif
         </p>
         <h1 className="mt-2 text-2xl font-semibold">Layanan aktivasi belum siap</h1>
@@ -19,7 +25,7 @@ export function UnavailableView({ serial }: { serial?: string }) {
         </p>
         <Link
           href="/"
-          className="mt-5 inline-flex min-h-11 items-center rounded-full bg-ink px-5 text-sm font-semibold text-paper focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2 focus-visible:outline-none"
+          className={`mt-5 ${BTN_SECONDARY}`}
         >
           Buka pembuat kartu
         </Link>
@@ -40,7 +46,7 @@ export function Interstitial({
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-md flex-col justify-center gap-4 px-5 py-10">
       <section className="rounded-3xl border border-hairline bg-paper p-6 shadow-sm">
-        <p className="w-fit rounded-full border border-hairline bg-surface-alt px-3 py-1 font-mono text-xs text-mid-gray">
+        <p className={PILL_META}>
           KARTU #{serial} AKTIF
         </p>
         <p className="mt-5 text-sm text-deep-gray">Kartu review untuk</p>
@@ -52,13 +58,13 @@ export function Interstitial({
         </p>
         <a
           href={url}
-          className="mt-6 flex min-h-12 w-full items-center justify-center rounded-full bg-ink px-5 text-sm font-semibold text-paper focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2 focus-visible:outline-none"
+          className={`mt-6 ${BTN_PRIMARY}`}
         >
           Buka Ulasan Google
         </a>
         <Link
           href={`/r/${serial}/manage`}
-          className="mt-3 inline-flex min-h-11 w-full items-center justify-center rounded-full border border-hairline px-5 text-sm font-semibold text-ink focus-visible:ring-2 focus-visible:ring-ink focus-visible:outline-none"
+          className={`mt-3 ${BTN_SECONDARY}`}
         >
           Ganti link (butuh PIN)
         </Link>
@@ -82,7 +88,7 @@ export function ActivationSuccess({
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-md flex-col justify-center gap-4 px-5 py-10">
       <section className="rounded-3xl border border-hairline bg-paper p-6 shadow-sm">
-        <p className="w-fit rounded-full border border-hairline bg-surface-alt px-3 py-1 font-mono text-xs text-mid-gray">
+        <p className={PILL_META}>
           KARTU #{serial} AKTIF
         </p>
         <h1 className="mt-5 text-3xl font-semibold tracking-tight">
@@ -93,7 +99,7 @@ export function ActivationSuccess({
           Google Anda.
         </p>
         <div className="mt-5 rounded-2xl border border-hairline bg-canvas p-4">
-          <p className="font-mono text-xs font-semibold tracking-widest text-mid-gray uppercase">
+          <p className={LABEL_EYEBROW}>
             Tujuan ulasan
           </p>
           <p className="mt-2 font-semibold break-words">{nama}</p>
@@ -106,7 +112,7 @@ export function ActivationSuccess({
         </div>
         <Link
           href={`/r/${serial}`}
-          className="mt-5 flex min-h-12 w-full items-center justify-center rounded-full bg-ink px-5 text-sm font-semibold text-paper focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2 focus-visible:outline-none"
+          className={`mt-5 ${BTN_PRIMARY}`}
         >
           Coba buka review
         </Link>

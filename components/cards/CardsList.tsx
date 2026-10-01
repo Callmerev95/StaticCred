@@ -6,6 +6,11 @@ import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { formatCardDate } from "@/lib/cards-format";
 import type { ListedCard } from "@/lib/store";
+import {
+  BTN_SECONDARY,
+  BTN_SMALL,
+  LABEL_EYEBROW,
+} from "@/lib/ui-classes";
 import QrOverlay from "./QrOverlay";
 
 type Filter = "all" | "active" | "pending";
@@ -13,7 +18,7 @@ type Filter = "all" | "active" | "pending";
 function Stat({ label, value }: { label: string; value: number }) {
   return (
     <div className="rounded-3xl border border-hairline bg-paper p-5 shadow-sm">
-      <p className="font-mono text-xs font-medium tracking-widest text-mid-gray uppercase">
+      <p className={LABEL_EYEBROW}>
         {label}
       </p>
       <p className="mt-2 text-3xl font-semibold tracking-tight tabular-nums">
@@ -38,7 +43,7 @@ function CopyButton({ text }: { text: string }) {
     <button
       type="button"
       onClick={copy}
-      className="inline-flex min-h-9 items-center rounded-full border border-hairline px-3 text-xs font-semibold text-ink transition-colors hover:bg-surface-alt focus-visible:ring-2 focus-visible:ring-ink focus-visible:outline-none"
+      className={BTN_SMALL}
     >
       {copied ? "Tersalin" : "Salin Link"}
     </button>
@@ -93,7 +98,7 @@ function CardRow({ card, base }: { card: ListedCard; base: string }) {
         <button
           type="button"
           onClick={() => setQrOpen(true)}
-          className="inline-flex min-h-9 items-center rounded-full border border-hairline px-3 text-xs font-semibold text-ink transition-colors hover:bg-surface-alt focus-visible:ring-2 focus-visible:ring-ink focus-visible:outline-none"
+          className={BTN_SMALL}
         >
           Lihat QR
         </button>
@@ -110,23 +115,17 @@ function CardRow({ card, base }: { card: ListedCard; base: string }) {
               href={`/r/${card.id}`}
               target="_blank"
               rel="noreferrer"
-              className="inline-flex min-h-9 items-center rounded-full border border-hairline px-3 text-xs font-semibold text-ink transition-colors hover:bg-surface-alt focus-visible:ring-2 focus-visible:ring-ink focus-visible:outline-none"
+              className={BTN_SMALL}
             >
               Tes Link
             </a>
-            <Link
-              href={`/r/${card.id}/manage`}
-              className="inline-flex min-h-9 items-center rounded-full border border-hairline px-3 text-xs font-semibold text-ink transition-colors hover:bg-surface-alt focus-visible:ring-2 focus-visible:ring-ink focus-visible:outline-none"
-            >
+            <Link href={`/r/${card.id}/manage`} className={BTN_SMALL}>
               Kelola
             </Link>
           </>
         ) : (
           <>
-            <Link
-              href={`/r/${card.id}/activate`}
-              className="inline-flex min-h-9 items-center rounded-full border border-hairline px-3 text-xs font-semibold text-ink transition-colors hover:bg-surface-alt focus-visible:ring-2 focus-visible:ring-ink focus-visible:outline-none"
-            >
+            <Link href={`/r/${card.id}/activate`} className={BTN_SMALL}>
               Aktivasi
             </Link>
             <CopyButton text={`${base}/r/${card.id}/activate`} />
@@ -171,7 +170,7 @@ export default function CardsList({
     <main className="mx-auto flex min-h-screen w-full max-w-3xl flex-col gap-6 px-5 py-10">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p className="font-mono text-xs font-semibold tracking-widest text-mid-gray uppercase">
+          <p className={LABEL_EYEBROW}>
             Area pemilik
           </p>
           <h1 className="mt-2 text-3xl font-semibold tracking-tight">
@@ -185,14 +184,11 @@ export default function CardsList({
           <button
             type="button"
             onClick={() => router.back()}
-            className="inline-flex min-h-11 items-center rounded-full border border-hairline px-5 text-sm font-semibold text-ink transition-colors hover:bg-surface-alt focus-visible:ring-2 focus-visible:ring-ink focus-visible:outline-none"
+            className={BTN_SECONDARY}
           >
             Kembali
           </button>
-          <Link
-            href="/"
-            className="inline-flex min-h-11 items-center rounded-full border border-hairline px-5 text-sm font-semibold text-ink transition-colors hover:bg-surface-alt focus-visible:ring-2 focus-visible:ring-ink focus-visible:outline-none"
-          >
+          <Link href="/" className={BTN_SECONDARY}>
             Buat Kartu Baru
           </Link>
         </div>

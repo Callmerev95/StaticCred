@@ -24,6 +24,7 @@ import {
 } from "@/lib/sizes";
 import type { CardFormState } from "@/lib/form-state";
 import { loadCardLogo } from "@/lib/logo";
+import { H2_PRIMARY, LABEL_CAPTION, PILL_META } from "@/lib/ui-classes";
 
 export type ZoomLevel = "75" | "100" | "fit";
 
@@ -168,17 +169,14 @@ export default function LivePreview({
       className="flex flex-col gap-4 rounded-3xl border border-hairline bg-paper p-5 shadow-sm sm:p-6"
     >
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 id={`${uid}-heading`} className="text-lg font-semibold">
+        <h2 id={`${uid}-heading`} className={H2_PRIMARY}>
           Live Canvas Preview
         </h2>
         <div className="flex flex-wrap items-center gap-2">
-          <span className="rounded-full border border-hairline bg-canvas px-3 py-1 font-mono text-xs text-deep-gray">
+          <span className={PILL_META}>
             {dimensionBadge(size)}
           </span>
-          <span
-            aria-hidden="true"
-            className="rounded-full border border-hairline bg-canvas px-3 py-1 font-mono text-xs text-deep-gray"
-          >
+          <span className={PILL_META}>
             300 DPI
           </span>
         </div>
@@ -188,7 +186,7 @@ export default function LivePreview({
         <div>
           <label
             htmlFor={`${uid}-size`}
-            className="mb-1 block font-mono text-xs text-mid-gray"
+            className={`mb-1 block ${LABEL_CAPTION}`}
           >
             Ukuran kartu
           </label>
@@ -313,7 +311,7 @@ export default function LivePreview({
             onClick={copySummary}
             className="min-h-9 rounded-full px-3 text-xs font-semibold text-ink hover:bg-surface-alt focus-visible:ring-2 focus-visible:ring-ink focus-visible:outline-none"
           >
-            {copied ? "Tersalin ✓" : "Salin Ringkasan"}
+            {copied ? "Tersalin" : "Salin Ringkasan"}
           </button>
           <button
             type="button"

@@ -16,6 +16,7 @@ import {
   type FormMode,
 } from "@/lib/form-state";
 import { toWriteReviewUrl } from "@/lib/review-url";
+import { H2_PRIMARY, LABEL_CAPTION, LABEL_FIELD } from "@/lib/ui-classes";
 import { PanduanPanel, PanduanToggle } from "@/components/activation/Panduan";
 
 interface BusinessFormProps {
@@ -44,7 +45,7 @@ function FieldLabel({
     <div className="mb-2 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-2">
       <label
         htmlFor={htmlFor}
-        className="shrink-0 font-mono text-xs font-medium tracking-widest text-ink whitespace-nowrap uppercase"
+        className={`shrink-0 whitespace-nowrap ${LABEL_FIELD}`}
       >
         {children}
       </label>
@@ -239,7 +240,7 @@ export default function BusinessForm({
         >
           1
         </span>
-        <h2 id={`${uid}-heading`} className="text-lg font-semibold">
+        <h2 id={`${uid}-heading`} className={H2_PRIMARY}>
           Data Usaha {"&"} Link Review
         </h2>
       </div>
@@ -486,7 +487,7 @@ export default function BusinessForm({
               <div key={key}>
                 <label
                   htmlFor={`${uid}-text-${key}`}
-                  className="mb-1 block font-mono text-xs text-mid-gray"
+                  className={`mb-1 block ${LABEL_CAPTION}`}
                 >
                   {label}
                 </label>
@@ -507,7 +508,7 @@ export default function BusinessForm({
       </div>
 
       <div className="mt-5 border-t border-hairline pt-4">
-        <p className="mb-3 font-mono text-xs font-medium tracking-widest text-ink uppercase">
+        <p className={`mb-3 ${LABEL_FIELD}`}>
           Pengaturan tampilan
         </p>
         <div className="grid grid-cols-2 gap-2">
@@ -541,7 +542,7 @@ export default function BusinessForm({
       <div className="mt-5 border-t border-hairline pt-4">
         <p
           id={`${uid}-theme-label`}
-          className="mb-3 font-mono text-xs font-medium tracking-widest text-ink uppercase"
+          className={`mb-3 ${LABEL_FIELD}`}
         >
           Tema kartu
         </p>

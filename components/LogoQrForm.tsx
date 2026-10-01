@@ -3,6 +3,7 @@
 import { useId, useRef, useState } from "react";
 import type { CardFormState } from "@/lib/form-state";
 import { loadCardLogo, logoFileError, LOGO_ACCEPT } from "@/lib/logo";
+import { ERROR_BOX, H2_PANEL, LABEL_CAPTION } from "@/lib/ui-classes";
 
 interface LogoQrFormProps {
   state: CardFormState;
@@ -57,7 +58,7 @@ export default function LogoQrForm({ state, onChange }: LogoQrFormProps) {
         >
           2
         </span>
-        <h2 id={`${uid}-heading`} className="text-lg font-semibold">
+        <h2 id={`${uid}-heading`} className={H2_PANEL}>
           Logo QR (Opsional)
         </h2>
       </div>
@@ -108,7 +109,9 @@ export default function LogoQrForm({ state, onChange }: LogoQrFormProps) {
       <p
         id={`${uid}-hint`}
         aria-live="polite"
-        className={`mt-2 font-mono text-xs ${error ? "text-ember" : "text-mid-gray"}`}
+        className={
+          error ? ERROR_BOX : `mt-2 ${LABEL_CAPTION}`
+        }
       >
         {error ??
           "Kosongkan atau hapus untuk memakai logo Google. PNG, JPG, atau WebP, maksimal 1 MB."}

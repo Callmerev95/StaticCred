@@ -4,6 +4,7 @@ import { useState } from "react";
 import { activateCardAction } from "@/lib/actions";
 import { BUSINESS_NAME_MAX } from "@/lib/form-state";
 import { extractPlaceId } from "@/lib/review-url";
+import { BTN_PRIMARY, ERROR_BOX, LABEL_FIELD } from "@/lib/ui-classes";
 import { ActivationSuccess } from "./views";
 import { useResolvedStatus } from "./useResolvedStatus";
 import { PanduanPanel, PanduanToggle } from "./Panduan";
@@ -97,7 +98,7 @@ export default function ActivationForm({ serial }: { serial: string }) {
         <div>
           <label
             htmlFor="akt-nama"
-            className="font-mono text-xs font-semibold tracking-widest text-ink uppercase"
+            className={LABEL_FIELD}
           >
             1. Nama tempat usaha / toko
           </label>
@@ -123,7 +124,7 @@ export default function ActivationForm({ serial }: { serial: string }) {
           <div className="flex flex-wrap items-center justify-between gap-2">
             <label
               htmlFor="akt-url"
-              className="font-mono text-xs font-semibold tracking-widest text-ink uppercase"
+              className={LABEL_FIELD}
             >
               2. Link Google Review / Maps
             </label>
@@ -166,7 +167,7 @@ export default function ActivationForm({ serial }: { serial: string }) {
         <div>
           <label
             htmlFor="akt-pin"
-            className="font-mono text-xs font-semibold tracking-widest text-ink uppercase"
+            className={LABEL_FIELD}
           >
             3. PIN keamanan (4-8 angka)
           </label>
@@ -201,17 +202,13 @@ export default function ActivationForm({ serial }: { serial: string }) {
         </div>
 
         <div role="alert" aria-live="assertive" className="min-h-0">
-          {error && (
-            <p className="mt-4 rounded-2xl border border-ember/40 bg-ember/5 px-4 py-3 text-sm text-ember">
-              {error}
-            </p>
-          )}
+          {error && <p className={ERROR_BOX}>{error}</p>}
         </div>
 
         <button
           type="submit"
           disabled={pending}
-          className="mt-5 min-h-12 w-full rounded-full bg-ink px-5 text-sm font-semibold text-paper focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2 focus-visible:outline-none disabled:opacity-60"
+          className={`mt-5 ${BTN_PRIMARY}`}
         >
           {pending ? "Mengaktifkan..." : "Aktifkan Kartu"}
         </button>

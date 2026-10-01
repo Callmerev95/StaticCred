@@ -6,6 +6,7 @@ import { updateCardAction, verifyPinAction } from "@/lib/actions";
 import { BUSINESS_NAME_MAX } from "@/lib/form-state";
 import { extractPlaceId } from "@/lib/review-url";
 import { useResolvedStatus } from "./useResolvedStatus";
+import { BTN_PRIMARY, ERROR_BOX, LABEL_FIELD } from "@/lib/ui-classes";
 import { PanduanPanel, PanduanToggle } from "./Panduan";
 
 export default function ManagePanel({
@@ -96,7 +97,7 @@ export default function ManagePanel({
         >
           <label
             htmlFor="kelola-pin"
-            className="font-mono text-xs font-semibold tracking-widest text-ink uppercase"
+            className={LABEL_FIELD}
           >
             PIN kartu
           </label>
@@ -112,14 +113,14 @@ export default function ManagePanel({
             className="mt-2 w-full rounded-2xl border border-hairline bg-surface-alt px-4 py-3 font-mono text-sm text-ink placeholder:text-mid-gray focus:border-ink focus:ring-1 focus:ring-ink focus:outline-none"
           />
           {error && (
-            <p role="alert" className="mt-3 text-sm text-ember">
+            <p role="alert" className={ERROR_BOX}>
               {error}
             </p>
           )}
           <button
             type="submit"
             disabled={pending}
-            className="mt-5 min-h-12 w-full rounded-full bg-ink px-5 text-sm font-semibold text-paper focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2 focus-visible:outline-none disabled:opacity-60"
+            className={`mt-5 ${BTN_PRIMARY}`}
           >
             {pending ? "Memeriksa..." : "Buka pengaturan"}
           </button>
@@ -163,7 +164,7 @@ export default function ManagePanel({
       >
         <label
           htmlFor="kelola-nama"
-          className="font-mono text-xs font-semibold tracking-widest text-ink uppercase"
+          className={LABEL_FIELD}
         >
           Nama tempat usaha
         </label>
@@ -179,7 +180,7 @@ export default function ManagePanel({
         <div className="mt-5 flex items-center justify-between gap-3">
           <label
             htmlFor="kelola-url"
-            className="font-mono text-xs font-semibold tracking-widest text-ink uppercase"
+            className={LABEL_FIELD}
           >
             Link ulasan Google
           </label>
@@ -229,11 +230,7 @@ export default function ManagePanel({
         />
 
         <div role="alert" aria-live="polite">
-          {error && (
-            <p className="mt-4 rounded-2xl border border-ember/40 bg-ember/5 px-4 py-3 text-sm text-ember">
-              {error}
-            </p>
-          )}
+          {error && <p className={ERROR_BOX}>{error}</p>}
           {notice && (
             <p className="mt-4 rounded-2xl border border-hairline bg-canvas px-4 py-3 text-sm text-deep-gray">
               {notice}
@@ -244,7 +241,7 @@ export default function ManagePanel({
         <button
           type="submit"
           disabled={pending}
-          className="mt-5 min-h-12 w-full rounded-full bg-ink px-5 text-sm font-semibold text-paper focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2 focus-visible:outline-none disabled:opacity-60"
+          className={`mt-5 ${BTN_PRIMARY}`}
         >
           {pending ? "Menyimpan..." : "Simpan perubahan"}
         </button>

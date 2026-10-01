@@ -157,7 +157,7 @@ describe("LivePreview", () => {
     fireEvent.click(screen.getByRole("button", { name: "Salin Ringkasan" }));
     await waitFor(() => expect(writeText).toHaveBeenCalledTimes(1));
     expect(writeText.mock.calls[0][0]).toContain("Kopi Senja");
-    expect(await screen.findByText("Tersalin ✓")).toBeDefined();
+    expect(await screen.findByText("Tersalin")).toBeDefined();
   });
 
   it("Reset Form memanggil onReset", () => {
