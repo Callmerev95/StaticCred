@@ -81,7 +81,7 @@ describe("matriks 5 ukuran x 2 tema", () => {
   const form = {
     ...defaultCardFormState(),
     businessName: "Kopi Senja",
-    cardId: "G-0NUJ",
+    cardId: "G-0NUJXA",
   };
 
   it("render offscreen dimensi persis tabel PRD", () => {
@@ -92,7 +92,7 @@ describe("matriks 5 ukuran x 2 tema", () => {
           const canvas = renderOffscreen(
             exportDrawOpts(
               { ...form, cardTheme, bleed },
-              "https://app.example/r/G-0NUJ",
+              "https://app.example/r/G-0NUJXA",
               dims,
             ),
           );

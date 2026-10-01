@@ -11,4 +11,4 @@ Next.js App Router + TypeScript + Canvas 2D native + lib minimal (`qrcode` untuk
 
 ## Consequences
 - Plus: tanpa biaya server, offline-capable, kontrol piksel penuh.
-- Minus: tidak ada validasi Place ID server-side; aktivasi kartu kosong butuh layanan terpisah nanti. Payload QR panjang ditangani di client (warning versi QR).
+- Minus: tidak ada validasi Place ID server-side; aktivasi kartu kosong butuh layanan terpisah nanti (terwujud di ADR-0005: hanya jalur aktivasi yang pakai backend, render cetak tetap client-side). Payload QR panjang ditangani di client (warning versi QR).

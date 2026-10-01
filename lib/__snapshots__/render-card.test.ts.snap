@@ -390,7 +390,7 @@ exports[`drawCard > snapshot calls per tema 1`] = `
   },
   {
     "args": [
-      "G-0NUJ",
+      "G-0NUJXA",
       955,
       546.5,
     ],
@@ -10960,7 +10960,7 @@ exports[`drawCard > snapshot calls per tema 2`] = `
   },
   {
     "args": [
-      "G-0NUJ",
+      "G-0NUJXA",
       955,
       546.5,
     ],

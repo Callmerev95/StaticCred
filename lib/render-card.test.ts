@@ -52,7 +52,7 @@ const BASE_OPTS: DrawCardOpts = {
   heightPx: 638,
   businessName: "Kopi Senja Utama",
   qrPayload: "https://search.google.com/local/writereview?placeid=ChIJN1t",
-  cardId: "G-0NUJ",
+  cardId: "G-0NUJXA",
 };
 
 function textsOf(calls: Call[]): string[] {
@@ -197,7 +197,7 @@ describe("kontras Tema Kartu (acceptance PRD)", () => {
 
 describe("getQrInfo", () => {
   it("versi valid untuk payload pendek", () => {
-    const info = getQrInfo("https://app.example/r/G-0NUJ");
+    const info = getQrInfo("https://app.example/r/G-0NUJXA");
     expect(info.moduleCount).toBe(17 + info.version * 4);
     expect(info.version).toBeGreaterThanOrEqual(1);
     expect(info.tooDense).toBe(false);
@@ -412,7 +412,7 @@ describe("drawCard", () => {
     const texts = textsOf(calls);
     expect(texts).toContain("Kopi Senja Utama");
     expect(texts).toContain("SCAN ATAU TAP DI SINI");
-    expect(texts).toContain("G-0NUJ");
+    expect(texts).toContain("G-0NUJXA");
     expect(texts.some((t) => t.includes("ECC-H"))).toBe(false);
     expect(texts).toContain("5.0");
   });
@@ -428,7 +428,7 @@ describe("drawCard", () => {
     const texts = textsOf(calls);
     expect(texts).toContain("Kopi Senja Utama");
     expect(texts).toContain("SCAN ATAU TAP DI SINI");
-    expect(texts).toContain("G-0NUJ");
+    expect(texts).toContain("G-0NUJXA");
     expect(texts.filter((t) => t === "SCAN ATAU TAP DI SINI").length).toBe(1);
   });
 
@@ -439,14 +439,14 @@ describe("drawCard", () => {
       widthPx: 827,
       heightPx: 827,
       cardTheme: "dark",
-      cardId: "G-0NUJ",
+      cardId: "G-0NUJXA",
     });
     const at = (text: string) =>
       calls
         .filter((c) => c.method === "fillText" && c.args[0] === text)
         .map((c) => c.args[1] as number);
     expect(at("SCAN ATAU TAP DI SINI")).toEqual([413.5]);
-    expect(at("G-0NUJ")).toEqual([413.5]);
+    expect(at("G-0NUJXA")).toEqual([413.5]);
   });
 
   it("ikon contactless digambar bersama pill NFC (4 busur, tanpa NFC: 0)", () => {
@@ -537,7 +537,7 @@ describe("drawCard", () => {
     const texts = textsOf(calls);
     expect(texts).not.toContain("5.0");
     expect(texts).not.toContain("TAP NFC");
-    expect(texts).not.toContain("G-0NUJ");
+    expect(texts).not.toContain("G-0NUJXA");
   });
 
   it("bleed true menggambar crop marks, false tidak", () => {

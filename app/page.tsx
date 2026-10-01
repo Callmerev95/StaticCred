@@ -11,6 +11,7 @@ import {
   type CardFormState,
 } from "@/lib/form-state";
 import { useDebouncedValue } from "@/lib/use-debounced-value";
+import { appBaseUrl } from "@/lib/app-url";
 import type { SizeId } from "@/lib/sizes";
 
 export default function Home() {
@@ -19,8 +20,7 @@ export default function Home() {
   const patch = (p: Partial<CardFormState>) =>
     setForm((s) => ({ ...s, ...p }));
 
-  const appUrl =
-    typeof window === "undefined" ? "" : window.location.origin;
+  const appUrl = appBaseUrl();
   const livePayload = useMemo(() => qrPayloadOf(form, appUrl), [form, appUrl]);
   const qrPayload = useDebouncedValue(livePayload, QR_DEBOUNCE_MS);
 
@@ -29,7 +29,7 @@ export default function Home() {
       <div className="flex flex-col gap-2">
         <div className="flex items-start justify-between gap-3">
           <p className="w-fit rounded-full border border-hairline bg-paper px-3 py-1 font-mono text-xs text-mid-gray">
-            Zero backend · 300 DPI · Canvas native
+            Canvas native · 300 DPI · Cetak lokal
           </p>
           <ThemeToggle />
         </div>

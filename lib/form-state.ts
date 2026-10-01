@@ -1,7 +1,7 @@
 // Bentuk state form kartu review. Satu objek ini yang dibaca preview (#6)
 // dan export (#7). Lihat PRD.md S4, reference/input-QR*.png.
 import type { CardThemeId } from "./card-themes";
-import { generateCardId } from "./qr";
+import { blankCardUrl, generateCardId } from "./qr";
 
 export type FormMode = "direct" | "blank";
 
@@ -46,15 +46,15 @@ export function defaultCardFormState(): CardFormState {
   };
 }
 
-// Payload QR terdebounce: verbatim link vs pola /r/G-XXXX (ADR-0003).
+// Payload QR terdebounce: verbatim link vs pola /r/G-XXXXXX (ADR-0005).
 // appUrl diisi saat export, default origin browser.
 export function qrPayloadOf(
   state: CardFormState,
   appUrl: string = "",
 ): string {
   if (state.mode === "blank") {
-    const base = appUrl.replace(/\/+$/, "");
-    return `${base}/r/${state.cardId.trim()}`;
+    const id = state.cardId.trim();
+    return id ? blankCardUrl(appUrl, id) : "";
   }
   return state.reviewLink.trim();
 }

@@ -1,11 +1,11 @@
 // Validator link review + ID kartu kosong. Murni, tanpa network.
-// Lihat CONTEXT.md (ID Kartu, Link Langsung vs Cetak Kosong), ADR-0003.
+// Lihat CONTEXT.md (Serial, Link Langsung vs Cetak Kosong), ADR-0005.
 
 export const CARD_ID_PREFIX = "G-";
-export const CARD_ID_LENGTH = 4;
+export const CARD_ID_LENGTH = 6;
 
-// Huruf rancu I, L, O dibuang (mirip 1 dan 0). U dipakai karena
-// ID referensi G-0NUJ memakainya, bentuknya tidak rancu.
+// Alfabet 33 karakter: huruf rancu I, L, O dibuang (mirip 1 dan 0).
+// U dipakai karena ID referensi lama memakainya, bentuknya tidak rancu.
 const ID_ALPHABET = "0123456789ABCDEFGHJKMNPQRSTUVWXYZ";
 
 export function generateCardId(random: () => number = Math.random): string {
@@ -16,7 +16,7 @@ export function generateCardId(random: () => number = Math.random): string {
   return `${CARD_ID_PREFIX}${body}`;
 }
 
-const CARD_ID_PATTERN = /^G-[0-9A-HJ-KM-NP-Z]{4}$/;
+const CARD_ID_PATTERN = /^G-[0-9A-HJ-KM-NP-Z]{6}$/;
 
 export function isValidCardId(id: string): boolean {
   return CARD_ID_PATTERN.test(id.trim());
@@ -72,7 +72,27 @@ export function checkReviewLink(raw: string): LinkCheck {
   };
 }
 
-// Pola QR Cetak Kosong: https://<app>/r/G-XXXX (placeholder, ADR-0003).
+// Pola QR Cetak Kosong: https://<app>/r/G-XXXXXX (ADR-0005).
 export function blankCardUrl(appUrl: string, cardId: string): string {
   return `${appUrl.replace(/\/+$/, "")}/r/${cardId.trim()}`;
+}
+
+// Link aktivasi untuk tombol Buka Link / ekspor CSV reseller.
+export function activateUrl(appUrl: string, cardId: string): string {
+  return `${blankCardUrl(appUrl, cardId)}/activate?isNew=true`;
+}
+
+// Tujuan ulasan yang diizinkan untuk aktivasi (divalidasi server-side).
+export function isGoogleReviewLink(raw: string): boolean {
+  let parsed: URL;
+  try {
+    parsed = new URL(raw.trim());
+  } catch {
+    return false;
+  }
+  if (parsed.protocol !== "https:") return false;
+  const host = parsed.hostname.toLowerCase();
+  if (host === "g.page" || host.endsWith(".g.page")) return true;
+  if (host === "maps.app.goo.gl") return true;
+  return host.includes("google.");
 }

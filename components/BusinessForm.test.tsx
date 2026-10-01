@@ -1,9 +1,13 @@
 // @vitest-environment jsdom
 import { fireEvent, render, screen } from "@testing-library/react";
 import { useState } from "react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import BusinessForm from "./BusinessForm";
 import { defaultCardFormState, type CardFormState } from "@/lib/form-state";
+
+vi.mock("@/lib/actions", () => ({
+  registerSerialsAction: vi.fn(async () => ({ registered: 1, available: true })),
+}));
 
 function Harness({ initial }: { initial?: CardFormState }) {
   const [state, setState] = useState(initial ?? defaultCardFormState());

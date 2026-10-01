@@ -21,7 +21,7 @@ Single-context: root `CONTEXT.md` + `docs/adr/`. See `docs/agents/domain.md`.
 - Stack: Next.js + TypeScript + Canvas native, tanpa backend.
 - Alur: paste link review → live preview → download PNG / PDF siap cetak.
 - Ukuran: PVC horizontal 85.6×54, PVC vertikal 54×85.6, Standee A6 105×148, Standee A7 74×105, Stiker 70×70 (mm, 300 DPI).
-- Mode QR: `Link Langsung` (URL review asli di QR) dan `Cetak Kosong` (QR pola `…/r/G-XXXX`, aktivasi belakangan).
+- Mode QR: `Link Langsung` (URL review asli di QR) dan `Cetak Kosong` (QR pola `…/r/G-XXXXXX`, aktivasi via KV, lihat ADR-0005).
 - Detail domain: lihat `CONTEXT.md`. Kebutuhan produk: lihat `PRD.md`. Acuan UI/UX: lihat `DESIGN.md` + `reference/`. Keputusan arsitektur: lihat `docs/adr/`.
 
 <!-- antislop:start -->

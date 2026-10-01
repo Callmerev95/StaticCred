@@ -227,14 +227,14 @@ Shared rules (both themes):
 - stars gold `#FBBC04`, TAP NFC gold `#FBBC04` (sama seperti bintang)
 - QR box putih tanpa border
 - CTA bawah QR muted, CTA portrait pill outline hairline + teks muted
-- serial `G-XXXX` muted
+- serial `G-XXXXXX` muted
 
 ### `google` — putih bersih official
 - bg `#ffffff`, heading `#0a0a0a`, body `#444746`, muted `#5f6368`
 - badge "G" multicolor official + teks badge biru `#3070E0` (sampel piksel referensi)
 - stars `#FBBC04`
 - QR box putih + border `#e5e5e5`
-- CTA pill filled `#3871E0` teks putih (sampel piksel referensi), serial `G-XXXX` muted
+- CTA pill filled `#3871E0` teks putih (sampel piksel referensi), serial `G-XXXXXX` muted
 
 QR contrast rule (both themes): dark modules on light field, always. Never white-on-black QR. ECC level H always.
 

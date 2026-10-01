@@ -34,7 +34,7 @@ function drawWithMock() {
     ctx,
     exportDrawOpts(
       { ...defaultCardFormState(), businessName: "Kopi Senja" },
-      "https://app.example/r/G-0NUJ",
+      "https://app.example/r/G-0NUJXA",
       dims,
     ),
   );

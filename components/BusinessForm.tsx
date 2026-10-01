@@ -1,7 +1,15 @@
 "use client";
 
-import { useId } from "react";
-import { blankCardUrl, checkReviewLink, generateCardId } from "@/lib/qr";
+import { useEffect, useId, useRef, useState } from "react";
+import {
+  activateUrl,
+  blankCardUrl,
+  checkReviewLink,
+  generateCardId,
+} from "@/lib/qr";
+import { registerSerialsAction } from "@/lib/actions";
+import { todayBatchLabel } from "@/lib/batch";
+import { printUrlWarning } from "@/lib/app-url";
 import {
   BUSINESS_NAME_MAX,
   type CardFormState,
@@ -107,6 +115,93 @@ export default function BusinessForm({ state, onChange, appUrl }: BusinessFormPr
     state.mode === "blank" && state.cardId.trim()
       ? blankCardUrl(appUrl || "https://contoh.app", state.cardId)
       : "";
+  const activateLink =
+    state.mode === "blank" && state.cardId.trim()
+      ? activateUrl(appUrl || "https://contoh.app", state.cardId)
+      : "";
+
+  const registeredRef = useRef<Set<string>>(new Set());
+  const [regNote, setRegNote] = useState<string | null>(null);
+  const [batchBusy, setBatchBusy] = useState(false);
+  const [batchInfo, setBatchInfo] = useState<{
+    ids: string[];
+    batch: string;
+    registered: number;
+    available: boolean;
+  } | null>(null);
+  const [printWarning, setPrintWarning] = useState<string | null>(null);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- baca origin sekali saat mount (browser-only, SSR aman)
+    setPrintWarning(printUrlWarning());
+  }, []);
+
+  // ID yang dipakai mode blank langsung didaftarkan (Pending, ADR-0005).
+  useEffect(() => {
+    if (state.mode !== "blank") return;
+    const id = state.cardId.trim();
+    if (!id || registeredRef.current.has(id)) return;
+    registeredRef.current.add(id);
+    let cancelled = false;
+    registerSerialsAction([id], "ID-BARU")
+      .then((r) => {
+        if (cancelled) return;
+        setRegNote(
+          !r.available
+            ? "Server aktivasi belum dikonfigurasi. Kartu tetap bisa dicetak."
+            : r.registered > 0
+              ? `ID ${id} terdaftar di server.`
+              : `ID ${id} gagal terdaftar. Klik ID Baru untuk coba lagi.`,
+        );
+      })
+      .catch(() => {
+        if (!cancelled) setRegNote("Pendaftaran ID gagal. Klik ID Baru untuk coba lagi.");
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [state.mode, state.cardId]);
+
+  const downloadCsv = (ids: string[], batch: string) => {
+    const header = "serial,link_qr,link_aktivasi,batch";
+    const rows = ids.map(
+      (id) =>
+        `${id},${blankCardUrl(appUrl, id)},${activateUrl(appUrl, id)},${batch}`,
+    );
+    const blob = new Blob([[header, ...rows].join("\n")], {
+      type: "text/csv;charset=utf-8",
+    });
+    const href = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = href;
+    a.download = `staticcred-${batch.toLowerCase()}.csv`;
+    a.click();
+    URL.revokeObjectURL(href);
+  };
+
+  const createBatch = async () => {
+    if (batchBusy) return;
+    setBatchBusy(true);
+    setRegNote(null);
+    try {
+      const seen = new Set<string>();
+      const ids: string[] = [];
+      while (ids.length < 50) {
+        const id = generateCardId();
+        if (seen.has(id)) continue;
+        seen.add(id);
+        ids.push(id);
+      }
+      const batch = todayBatchLabel();
+      const result = await registerSerialsAction(ids, batch);
+      setBatchInfo({ ids, batch, ...result });
+      downloadCsv(ids, batch);
+    } catch {
+      setRegNote("Batch gagal dibuat. Coba lagi.");
+    } finally {
+      setBatchBusy(false);
+    }
+  };
 
   const linkInputId = `${uid}-link`;
   const nameInputId = `${uid}-name`;
@@ -255,15 +350,45 @@ export default function BusinessForm({ state, onChange, appUrl }: BusinessFormPr
                     ID Baru
                   </button>
                   <a
-                    href={blankUrl}
+                    href={activateLink}
                     target="_blank"
                     rel="noreferrer"
                     className="inline-flex min-h-11 items-center rounded-full border border-hairline px-4 text-sm font-semibold text-ink focus-visible:ring-2 focus-visible:ring-ink focus-visible:outline-none"
                   >
                     Buka Link
                   </a>
+                  <button
+                    type="button"
+                    onClick={createBatch}
+                    disabled={batchBusy}
+                    className="min-h-11 rounded-full border border-hairline px-4 text-sm font-semibold text-ink focus-visible:ring-2 focus-visible:ring-ink focus-visible:outline-none disabled:opacity-60"
+                  >
+                    {batchBusy ? "Membuat 50 ID..." : "Buat 50 ID"}
+                  </button>
                 </div>
               </div>
+              <p
+                aria-live="polite"
+                className="mt-2 font-mono text-xs text-mid-gray"
+              >
+                {regNote}
+              </p>
+              {batchInfo && (
+                <p className="mt-2 font-mono text-xs text-deep-gray">
+                  {batchInfo.ids.length} ID dibuat, {batchInfo.registered}{" "}
+                  terdaftar ({batchInfo.batch}).{" "}
+                  <button
+                    type="button"
+                    onClick={() => downloadCsv(batchInfo.ids, batchInfo.batch)}
+                    className="font-semibold text-ink underline decoration-hairline underline-offset-2 focus-visible:ring-2 focus-visible:ring-ink focus-visible:outline-none"
+                  >
+                    Unduh CSV lagi
+                  </button>
+                </p>
+              )}
+              {printWarning && (
+                <p className="mt-2 font-mono text-xs text-ember">{printWarning}</p>
+              )}
             </div>
 
             <div>
@@ -277,8 +402,8 @@ export default function BusinessForm({ state, onChange, appUrl }: BusinessFormPr
                 className="w-full rounded-2xl border border-hairline bg-surface-alt px-4 py-3 font-mono text-sm text-ink focus:border-ink focus:outline-none"
               />
               <p className="mt-2 font-mono text-xs text-mid-gray">
-                Jika belum aktif mengarah ke halaman aktivasi. Jika sudah aktif
-                langsung buka review Google.
+                Belum aktif: scan membuka halaman aktivasi. Sudah aktif: scan
+                menampilkan konfirmasi nama toko sebelum buka ulasan.
               </p>
             </div>
 

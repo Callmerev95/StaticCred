@@ -19,7 +19,8 @@ Referensi UI: `reference/input-QR.png`, `reference/input-QR-kosong.png`, `refere
   | Standee A6 | 105×148 | 1240×1748 | 1311×1819 |
   | Standee A7 | 74×105 | 874×1240 | 945×1311 |
   | Stiker Kasir | 70×70 | 827×827 | 898×898 |
-- Mode QR ganda: `Link Langsung` (QR = URL review asli) dan `Cetak Kosong` (QR = pola `https://<app>/r/G-XXXX`, ID kartu `G-` + 4 base32, tombol ID Baru + Buka Link).
+- Mode QR ganda: `Link Langsung` (QR = URL review asli) dan `Cetak Kosong` (QR = pola `https://<app>/r/G-XXXXXX`, ID kartu `G-` + 6 dari alfabet 33 tanpa I/L/O, tombol ID Baru + Buka Link + Buat 50 ID + ekspor CSV).
+- Aktivasi Cetak Kosong (ADR-0005): route `/r/[id]` (307 ke activate bila belum aktif; interstitial konfirmasi + hitung scan bila aktif), `/r/[id]/activate` (form nama + link Google + PIN, validasi server, halaman sukses), `/r/[id]/manage` (gerbang PIN, ubah nama/link/PIN). Storage Vercel KV; lazy + daftar-pasif saat ID dibuat; rate-limit IP, lockout PIN, first-wins.
 - Form: link review (Google Maps `writereview?placeid=` + TripAdvisor, paste bebas V1), nama usaha (max 60 char + counter), collapsible Ubah Teks Kartu (Judul, Badge, CTA), toggle: 5 Bintang, Ikon NFC, Serial ID, Bleed.
 - Live preview WYSIWYG + toggle: 5 Bintang, Ikon NFC, Serial ID, Bleed (3 mm + crop marks). Layout mengikuti `reference/stitch-reference.png`: badge dimensi dinamis, kontrol zoom 75%/100%/Fit (CSS scale), dotted background, footer `Output Piksel` + `Salin Ringkasan` + `Reset Form`.
 - Tema ganda independen: Tema Aplikasi (light/dark, system + toggle) hanya untuk chrome; Tema Kartu (`dark` default / `google` official) untuk hasil cetak via segmen kontrol. Spesifikasi: `DESIGN.md` § Dark Theme + § Card Themes.
@@ -27,9 +28,9 @@ Referensi UI: `reference/input-QR.png`, `reference/input-QR-kosong.png`, `refere
 - Stack: Next.js (App Router) + TypeScript + Canvas native + Tailwind. Deploy Vercel.
 
 ### Keluar (non-goals V1)
-- Aktivasi dinamis `/r/:id` (butuh backend/KV, V1 hanya pola URL placeholder, lihat ADR-0003).
-- Fetch/validasi Place ID via Google API, scraping TripAdvisor.
-- Editor drag-and-drop, multi-bahasa, auth, pembayaran.
+- Dashboard `/cards` (daftar semua kartu + scan): cek status per kartu cukup via `/r/[id]/manage`.
+- Fetch/validasi Place ID via Google API, Places Autocomplete (butuh API key + billing), scraping TripAdvisor.
+- Editor drag-and-drop, multi-bahasa, auth, pembayaran. Trip Advisor di form aktivasi (aktivasi Google saja; Link Langsung tetap menerima TripAdvisor).
 
 ## 4. Alur pengguna
 1. Pilih ukuran → 2. Isi Data Usaha & Link Review (tab Link Langsung / Cetak Kosong) → 3. Atur teks + tampilan → 4. Live preview → 5. Download PNG / PDF.
@@ -37,11 +38,15 @@ Referensi UI: `reference/input-QR.png`, `reference/input-QR-kosong.png`, `refere
 ## 5. Acceptance criteria
 - [ ] Paste link Google/TripAdvisor → QR preview berubah <300ms (debounced), ECC level H, quiet zone ≥4 modul.
 - [ ] Nama usaha >60 char ditolak + counter akurat.
-- [ ] Cetak Kosong: ID Baru selalu unik per sesi (tidak collision), tanpa nama toko di kartu.
+- [ ] Cetak Kosong: serial `G-`+6 tanpa I/L/O, langsung terdaftar di KV (Pending), tanpa nama toko di kartu.
+- [ ] Scan serial belum aktif → 307 ke `/r/[id]/activate?isNew=true`; serial aktif → interstitial, scan +1 sekali tanpa penyimpanan IP.
+- [ ] Aktivasi sukses → halaman "Kartu Berhasil Diaktifkan" + pengingat simpan PIN; balapan dua submit = first-wins.
+- [ ] ID format salah → 404; link tujuan non-Google ditolak server-side (bukan hanya klien).
+- [ ] PIN salah 5× → jeda 15 menit per serial; ≥10 aktivasi/jam/IP ditolak; `/manage` tak tampil sebelum PIN benar.
 - [ ] Toggle 5 Bintang / NFC / Serial / Bleed tampil-sembunyi real-time di preview maupun export.
 - [ ] PNG diekspor pada resolusi tabel §3 persis (byte-check dimensi).
 - [ ] PDF berukuran mm persis per varian (boleh dicek di Acrobat preflight).
-- [ ] Tidak ada request network selain navigasi/CDN, verified via DevTools offline.
+- [ ] Generator, preview, dan export tidak mengirim request network apa pun (Verified via DevTools offline); hanya route aktivasi `/r/*` yang memanggil KV.
 - [ ] Toggle Tema Aplikasi light/dark tidak mengubah satu piksel output PNG (render export di kedua tema, hash sama).
 - [ ] Kedua Tema Kartu lolos kontras teks dan QR terbaca pemindai pada cetak 1:1.
 - [ ] Zoom 75/100/Fit hanya CSS scale; badge dimensi + footer piksel selalu cocok tabel PRD.
@@ -62,3 +67,4 @@ Referensi UI: `reference/input-QR.png`, `reference/input-QR-kosong.png`, `refere
 6. LivePreview + toggles + overrides teks
 7. Export PNG + PDF 300 DPI
 8. Polish a11y/responsive + deploy Vercel
+9. Aktivasi Cetak Kosong: `lib/store.ts` (KV + rate-limit + hash PIN), route `/r/[id]`, `/activate`, `/manage`, batch 50 ID + ekspor CSV, `NEXT_PUBLIC_APP_URL`

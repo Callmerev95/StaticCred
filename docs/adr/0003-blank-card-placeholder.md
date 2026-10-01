@@ -1,6 +1,6 @@
 # ADR-0003: Cetak Kosong sebagai pola URL placeholder
 
-- Status: accepted
+- Status: superseded by ADR-0005
 - Date: 2026-09-29
 
 ## Context
