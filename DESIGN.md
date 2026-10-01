@@ -215,17 +215,17 @@ Rules: radius 18px interactive / 24px containers unchanged; preview dot-grid bac
 Independent axis from app theme. Passed as `cardTheme` into `drawCard(ctx, {...})`. Two themes only. Default: `dark`. Layout source: `reference/google-lightmode.png` + `reference/google-darkmode.png` (semua ukuran diukur dalam satuan `u = tw/100`).
 
 Shared rules (both themes):
-- Card radius `0.07 × min-dimensi`; latar kartu bergradien vertikal (light `#FAFAFB`→`#EEF1F3`, dark `#161C2E`→`#111726`); border rambut mengikuti tema.
-- Header: chip squircle (sisi `5.4u`, radius `0.28`) berisi badge G official (path persis `@lobehub/icons` Google.Color, MIT) di kiri, label dua baris "Google Verified" + centang biru (label statis) lalu "GOOGLE REVIEW" bold, pill TAP NFC kanan berisi ikon contactless (4 busur sepusat ±45°, Flaticon ID 6107543), hairline pemisah bawah.
-- Kartu QR: kanan pada landscape (avail `0.295×tw`, menempel tepi kanan konten), tengah pada portrait/persegi (avail `0.62×tw`), dihitung `qrCardLayout`. Di dalam kartu: strip pelangi `QR_STRIP_STOPS` (biru→hijau→emas) di tepi atas, panel modul dengan quiet zone 4 modul + inset 2 modul (invarian `qrCardLayout`), bracket L biru `#3663E3` di empat sudut, logo user opsional di tengah (fallback chip putih + G), pill CTA biru `#3663E3` berisi panah ↓ (digambar manual) + label yang font-nya mengecil otomatis agar tidak terpotong.
+- Card radius `0.07 × min-dimensi`; sudut transparan di luar busur: fill gradien di-clip ke round-rect dulu (radius `r + bleedPx` konsentris garis potong saat bleed aktif), jadi tak ada siluet kotak. Latar kartu bergradien vertikal (light `#FAFAFB`→`#EEF1F3`, dark `#161C2E`→`#111726`); border rambut mengikuti tema.
+- Header: chip squircle (sisi `5.4u`, radius `0.28`) berisi badge G official (path persis `@lobehub/icons` Google.Color, MIT) di kiri, label dua baris "Google Verified" + badge centang (siluet poligon 10 lobus + centang putih, isi `#3663E3` kedua tema, ditrace dari Flaticon ID 7641727) lalu "GOOGLE REVIEW" bold, pill TAP NFC kanan berisi ikon contactless (4 busur sepusat ±45°, Flaticon ID 6107543), hairline pemisah bawah.
+- Kartu QR: kanan pada landscape (avail `0.295×tw`, menempel tepi kanan konten), tengah pada portrait/persegi (avail `0.72×tw`), dihitung `qrCardLayout`. Stride quiet zone: landscape memakai nilai konservatif `total + 8`, portrait memakai stride ketat `total + 4` (`exactStride`). Di dalam kartu: strip pelangi `QR_STRIP_STOPS` (biru→hijau→emas) di tepi atas, garis pembungkus border `qrCardBorder` selebar `max(2, cardW×0.008)` (dark `#5F6B80`, ≥3:1; light tanpa garis, andai bayangan), panel modul dengan quiet zone 4 modul + inset 2 modul (invarian `qrCardLayout`), bracket L biru `#3663E3` di empat sudut, logo user opsional di tengah (fallback chip putih + G), pill CTA biru `#3663E3` berisi panah ↓ (digambar manual) + label yang font-nya mengecil otomatis agar tidak terpotong.
 - Hero landscape: eyebrow nama usaha (weight 600), judul besar, baris bintang + skor "5.0" selalu tampil, paragraf sub-CTA. Footer: hairline, serial `G-XXXXXX` kiri (bila aktif), "Powered by **StaticCred** Card System" kanan.
-- Portrait + persegi: satu kolom center; footer serial center + brand center di bawah; QR memakai pill CTA yang sama.
+- Portrait + persegi: satu kolom center; hero (nama → judul → bintang → sub-CTA) dengan tiga gap rata (header→hero, hero→QR, QR→footer, lantai `1.5u`); footer = hairline + satu baris (serial `G-XXXXXX` kiri, brand kanan); QR memakai pill CTA yang sama.
 - ECC H, modul gelap di bidang terang, selalu. QR contrast rule: dark modules on light field. Never white-on-black QR. Logo center aman oleh toleransi ECC H.
 
 ### `dark` — navy elegan (default)
 - bg gradien `#161C2E`→`#111726`, heading `#FFFFFF`, body `#CDD5E0`, muted `#8995A8`
 - chip/pill `#1F2839` (border `#2E3A52`), "Google Verified" `#70A3F3`, ikon NFC `#70A3F3`
-- stars `#F2C14B`, hairline `#1D2537`, kartu QR `#111729` + border `#1D2537`
+- stars `#F2C14B`, hairline `#1D2537`, kartu QR `#111729` + border pembungkus `#5F6B80` (3.31:1)
 - QR panel putih `#FFFFFF`, modul `#111729`, CTA `#3663E3` teks putih
 - serial `#8995A8`, brand `Powered by` `#9AA5B8` + `StaticCred` putih
 
@@ -236,7 +236,7 @@ Shared rules (both themes):
 - QR panel `#F8FAFC`, modul `#111729`, CTA `#3663E3` teks putih
 - serial `#5F6B80`, brand `Powered by` `#64708A` + `StaticCred` `#364153`
 
-Pasangan kontras teks (≥4.5:1 WCAG AA) dikunci tes `lib/render-card.test.ts` § kontras.
+Pasangan kontras teks (≥4.5:1 WCAG AA) dan garis pembungkus QR dark (≥3:1) dikunci tes `lib/render-card.test.ts` § kontras.
 
 ## Imagery
 

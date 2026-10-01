@@ -17,7 +17,7 @@ export const QR_ECC = "H" as const;
 export const QR_QUIET_MODULES = 4;
 export const QR_VERSION_WARN = 10;
 export const CARD_RADIUS_FACTOR = 0.07;
-export const PORTRAIT_QR_WIDTH_FACTOR = 0.62;
+export const PORTRAIT_QR_WIDTH_FACTOR = 0.72;
 
 export interface CardTexts {
   title?: string;
@@ -396,11 +396,15 @@ export interface QrCardLayout {
 // Geometri kartu QR penuh (strip pelangi + panel + pill CTA), diukur dari
 // mockup: padX 2,15u, strip 0,75u, gap panel-atas 1,5u, gap pill 1,85u,
 // pill 4,3u, dasar 1,85u. cell dijepit lebar DAN tinggi zona yang tersedia.
+// exactStride: pakai stride nyata panel (total + 4 modul innerPad) agar sel
+// memakai lebar/tinggi avail penuh; cabang lama (pvc-h) tetap memakai stride
+// konservatif total + 2·quiet agar hasil pvc-h tak berubah.
 export function qrCardLayout(
   moduleCount: number,
   availCardW: number,
   availCardH: number,
   u: number,
+  exactStride = false,
 ): QrCardLayout {
   const padX = Math.round(u * 2.15);
   const stripH = Math.max(2, Math.round(u * 0.75));
@@ -410,7 +414,8 @@ export function qrCardLayout(
   const bottomPad = Math.round(u * 1.85);
   const fixedH = stripH + gapTop + gapPill + ctaH + bottomPad;
   const total = moduleCount + QR_QUIET_MODULES * 2;
-  const withPad = total + QR_QUIET_MODULES * 2;
+  // Panel = drawn + innerPad (2 modul tiap sisi) → stride total + 4.
+  const withPad = exactStride ? total + 4 : total + QR_QUIET_MODULES * 2;
   const cellW = Math.floor((availCardW - padX * 2) / withPad);
   const cellH = Math.floor((availCardH - fixedH) / withPad);
   const cell = Math.max(1, Math.min(cellW, cellH));
@@ -510,7 +515,9 @@ function drawCenterLogo(
   drawGoogleG(ctx, cx, cy, side * 0.3);
 }
 
-// Badge centang biru setelah label "Google Verified".
+// Badge centang setelah label "Google Verified". Siluet 10 lobus dipetakan dari
+// Flaticon ID 7641727 (lisensi Flaticon, atribusi README): polar r = R·(a + b·cos10θ)
+// dengan a/b diukur dari artwork 512 px, plus centang putih dua segmen round-cap.
 function drawCheckBadge(
   ctx: CanvasRenderingContext2D,
   color: string,
@@ -518,19 +525,29 @@ function drawCheckBadge(
   cy: number,
   d: number,
 ): void {
+  const R = d / 2;
   ctx.save();
   ctx.fillStyle = color;
   ctx.beginPath();
-  ctx.arc(cx, cy, d / 2, 0, Math.PI * 2);
+  const steps = 80;
+  for (let i = 0; i <= steps; i++) {
+    const t = (i / steps) * Math.PI * 2;
+    const rr = R * (0.9063 + 0.0937 * Math.cos(10 * t));
+    const x = cx + rr * Math.cos(t);
+    const y = cy + rr * Math.sin(t);
+    if (i === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  }
+  ctx.closePath();
   ctx.fill();
   ctx.strokeStyle = "#FFFFFF";
-  ctx.lineWidth = Math.max(1.5, d * 0.14);
+  ctx.lineWidth = Math.max(1.5, d * 0.0653);
   ctx.lineCap = "round";
   ctx.lineJoin = "round";
   ctx.beginPath();
-  ctx.moveTo(cx - d * 0.22, cy + d * 0.02);
-  ctx.lineTo(cx - d * 0.05, cy + d * 0.18);
-  ctx.lineTo(cx + d * 0.24, cy - d * 0.16);
+  ctx.moveTo(cx - d * 0.1383, cy - d * 0.012);
+  ctx.lineTo(cx - d * 0.0425, cy + d * 0.0926);
+  ctx.lineTo(cx + d * 0.1383, cy - d * 0.0468);
   ctx.stroke();
   ctx.restore();
 }
@@ -595,7 +612,7 @@ function drawQrCard(
   ctx.fillRect(cardX, cardY, lay.cardW, lay.stripH);
   if (theme.qrCardBorder) {
     ctx.strokeStyle = theme.qrCardBorder;
-    ctx.lineWidth = Math.max(1, Math.round(lay.cardW * 0.006));
+    ctx.lineWidth = Math.max(2, Math.round(lay.cardW * 0.008));
     strokeRoundRect(ctx, cardX, cardY, lay.cardW, lay.cardH, r);
   }
   ctx.restore();
@@ -696,6 +713,7 @@ function drawStarsRow(
   ratingSize: number,
   alignLeft: boolean,
 ): number {
+  ctx.save();
   setFont(ctx, 700, ratingSize);
   const ratingW = ctx.measureText("5.0").width;
   const starsW = Math.round(5 * starR * 2 + 4 * gapStar);
@@ -709,6 +727,7 @@ function drawStarsRow(
   ctx.fillStyle = theme.heading;
   ctx.textAlign = "left";
   ctx.fillText("5.0", x0 + starsW + gapRating, cy);
+  ctx.restore();
   return totalW;
 }
 
@@ -908,18 +927,25 @@ export function drawCard(
   const bleedPx = opts.bleed ? mmToPx(BLEED_MM) : 0;
   const logo = opts.logo ?? null;
 
-  // Gradien latar diagonal: ujung terang kiri-atas ke ujung redup kanan-bawah.
-  const bgGrad = ctx.createLinearGradient(0, 0, W, H);
-  bgGrad.addColorStop(0, theme.bgFrom);
-  bgGrad.addColorStop(1, theme.bgTo);
-  ctx.fillStyle = bgGrad;
-  ctx.fillRect(0, 0, W, H);
-
   const tx = bleedPx;
   const ty = bleedPx;
   const tw = W - bleedPx * 2;
   const th = H - bleedPx * 2;
   const radius = Math.round(Math.min(tw, th) * CARD_RADIUS_FACTOR);
+
+  // Siluet kartu = rounded rect. Tanpa bleed: radius biasa; dengan bleed bentuk
+  // luar melebar radius + bleedPx (konsentris dengan garis potong) supaya
+  // cakupan 3mm utuh di sudut. Luar busur dibiarkan transparan.
+  ctx.save();
+  const bgGrad = ctx.createLinearGradient(0, 0, W, H);
+  bgGrad.addColorStop(0, theme.bgFrom);
+  bgGrad.addColorStop(1, theme.bgTo);
+  ctx.beginPath();
+  traceRoundRect(ctx, 0, 0, W, H, radius + bleedPx);
+  ctx.clip();
+  ctx.fillStyle = bgGrad;
+  ctx.fillRect(0, 0, W, H);
+  // Clip kedua: konten kartu berhenti di garis potong (rounded rect trim).
   ctx.beginPath();
   traceRoundRect(ctx, tx, ty, tw, th, radius);
   ctx.clip();
@@ -1103,8 +1129,10 @@ function drawLandscape(
   }
 }
 
-// Portrait + persegi: kolom tengah. Footer dua baris center: serial di atas,
-// baris brand di bawah.
+// Portrait + persegi: kolom tengah. Hero (eyebrow → judul → bintang → sub-CTA),
+// zona QR, lalu footer hairline + satu baris (serial kiri, brand kanan).
+// Tinggi blok dihitung dulu; sisa ruang dibagi rata jadi 3 gap header→hero,
+// hero→QR, QR→footer (floor 1,5u) agar tak ada zona kosong mengambang.
 function drawPortrait(
   ctx: CanvasRenderingContext2D,
   theme: CardTheme,
@@ -1119,18 +1147,21 @@ function drawPortrait(
   const name = opts.businessName.trim();
   const bottomPad = Math.round(u * 3);
 
+  // Footer: hairline + baris tunggal.
   const brandFs = Math.round(u * 1.45);
   const serialFs = Math.round(u * 1.45);
-  const serialGap = Math.round(u * 0.8);
   const showSerial = flags.showSerial && Boolean(opts.cardId);
-  const serialH = showSerial ? serialFs + serialGap : 0;
-  const footerH = serialH + brandFs;
+  const footerRowH = showSerial ? Math.max(brandFs, serialFs) : brandFs;
+  const hairlineGap = Math.round(u * 1.7);
+  const footerH = hairlineGap + footerRowH;
   const footerTop = Math.round(ty + th - pad - bottomPad - footerH);
+  const footerCy = footerTop + hairlineGap + Math.round(footerRowH / 2);
 
   const fsEyebrow = Math.round(u * 1.7);
   const fsHeading = Math.round(u * 4.1);
   const gapEyebrow = Math.round(u * 1.4);
   const gapHeading = Math.round(u * 2.3);
+  const gapStars = Math.round(u * 2.1);
   const starsH = Math.round(u * 2.8);
   const subLineH = Math.round(u * 2.9);
 
@@ -1143,8 +1174,26 @@ function drawPortrait(
   if (name) heroH = fsEyebrow + gapEyebrow;
   heroH += fsHeading;
   if (flags.showStars) heroH += gapHeading + starsH;
+  if (subLines.length > 0) {
+    heroH += (flags.showStars ? gapStars : gapHeading) + subLines.length * subLineH;
+  }
 
-  const heroTop = header.headerBottom + Math.round(u * 4);
+  const gapFloor = Math.round(u * 1.5);
+  const contentTop = header.headerBottom;
+  const zone = Math.max(1, footerTop - contentTop);
+  const availQrH = Math.max(1, zone - heroH - gapFloor * 3);
+  const qr = buildQr(flags.payload);
+  const lay = qrCardLayout(
+    qr.getModuleCount(),
+    Math.round(f.tw * PORTRAIT_QR_WIDTH_FACTOR),
+    availQrH,
+    u,
+    true,
+  );
+  const slack = Math.max(0, zone - heroH - lay.cardH);
+  const gap = Math.max(gapFloor, Math.floor(slack / 3));
+
+  const heroTop = contentTop + gap;
   let cursorY = heroTop;
   if (name) {
     ctx.fillStyle = theme.muted;
@@ -1179,43 +1228,32 @@ function drawPortrait(
     );
     cursorY += starsH;
   }
-
-  const gapSub = Math.round(u * 3);
-  const subH = subLines.length * subLineH;
-  const zoneTop = Math.round(heroTop + heroH + u * 4);
-  const zoneBottom = Math.round(
-    footerTop - (subLines.length > 0 ? subH + gapSub : u * 3),
-  );
-  const qr = buildQr(flags.payload);
-  const lay = qrCardLayout(
-    qr.getModuleCount(),
-    Math.round(f.tw * PORTRAIT_QR_WIDTH_FACTOR),
-    Math.max(1, zoneBottom - zoneTop),
-    u,
-  );
-  const cardX = Math.round(cx - lay.cardW / 2);
-  const cardY = Math.round(zoneTop + (zoneBottom - zoneTop - lay.cardH) / 2);
-  drawQrCard(ctx, theme, qr, cardX, cardY, lay, texts.cta, flags.logo, u);
-
   if (subLines.length > 0) {
-    const subTop = zoneBottom + gapSub;
+    cursorY += flags.showStars ? gapStars : gapHeading;
     ctx.fillStyle = theme.body;
     setFont(ctx, 400, Math.round(u * 2.0));
     for (let i = 0; i < subLines.length; i += 1) {
-      ctx.fillText(subLines[i], cx, subTop + subLineH / 2 + i * subLineH);
+      ctx.fillText(subLines[i], cx, cursorY + subLineH / 2 + i * subLineH);
     }
   }
 
-  const brandCy = Math.round(ty + th - pad - bottomPad - brandFs / 2);
+  const cardX = Math.round(cx - lay.cardW / 2);
+  const cardY = Math.round(heroTop + heroH + gap);
+  drawQrCard(ctx, theme, qr, cardX, cardY, lay, texts.cta, flags.logo, u);
+
+  ctx.strokeStyle = theme.hairline;
+  ctx.lineWidth = Math.max(1, Math.round(u * 0.16));
+  ctx.beginPath();
+  ctx.moveTo(left, footerTop);
+  ctx.lineTo(right, footerTop);
+  ctx.stroke();
   if (showSerial && opts.cardId) {
     ctx.fillStyle = theme.serial;
+    ctx.textAlign = "left";
+    ctx.textBaseline = "middle";
     setFont(ctx, 500, serialFs);
-    ctx.fillText(
-      opts.cardId.trim(),
-      cx,
-      Math.round(footerTop + serialFs / 2),
-    );
+    ctx.fillText(opts.cardId.trim(), left, footerCy);
   }
-  drawPoweredBy(ctx, theme, cx, brandCy, u, true);
+  drawPoweredBy(ctx, theme, right, footerCy, u, false);
 }
 

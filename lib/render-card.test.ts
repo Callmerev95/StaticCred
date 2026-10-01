@@ -6,6 +6,7 @@ import {
   QR_STRIP_STOPS,
 } from "./card-themes";
 import {
+  CARD_RADIUS_FACTOR,
   drawCard,
   drawGoogleG,
   getQrInfo,
@@ -14,7 +15,7 @@ import {
   QR_QUIET_MODULES,
   type DrawCardOpts,
 } from "./render-card";
-import { CARD_SIZES, exportDims } from "./sizes";
+import { BLEED_MM, CARD_SIZES, exportDims, mmToPx } from "./sizes";
 
 interface Call {
   method: string;
@@ -197,6 +198,16 @@ describe("kontras Tema Kartu (acceptance PRD)", () => {
       expect(contrastRatio(t.pillFg, t.pillBg)).toBeGreaterThanOrEqual(4.5);
       expect(contrastRatio(t.ctaFg, t.ctaBg)).toBeGreaterThanOrEqual(4.5);
       expect(contrastRatio(t.qrFg, t.qrBg)).toBeGreaterThanOrEqual(4.5);
+    }
+  });
+
+  it("garis tepian pembungkus QR lolos kontras non-teks ≥3:1", () => {
+    // Tema gelap wajib punya garis (light memakai bayangan + kartu putih).
+    expect(CARD_THEMES.dark.qrCardBorder).toBeTruthy();
+    for (const t of [CARD_THEMES.dark, CARD_THEMES.google]) {
+      if (!t.qrCardBorder) continue;
+      expect(contrastRatio(t.qrCardBorder, t.qrCardBg)).toBeGreaterThanOrEqual(3);
+      expect(contrastRatio(t.qrCardBorder, t.bg)).toBeGreaterThanOrEqual(3);
     }
   });
 });
@@ -396,7 +407,7 @@ describe("drawCard", () => {
     expect(texts).toContain("5.0");
   });
 
-  it("portrait: kolom tengah dengan pill CTA dan serial tengah", () => {
+  it("portrait: kolom tengah dengan pill CTA dan footer satu baris", () => {
     const { ctx, calls } = createMockCtx();
     drawCard(ctx, {
       ...BASE_OPTS,
@@ -409,9 +420,31 @@ describe("drawCard", () => {
     expect(texts).toContain("SCAN ATAU TAP DI SINI");
     expect(texts).toContain("G-0NUJXA");
     expect(texts.filter((t) => t === "SCAN ATAU TAP DI SINI").length).toBe(1);
+    // Sub-CTA pindah ke hero (di atas QR), footer jadi hairline + 1 baris.
+    const at = (text: string) =>
+      calls
+        .filter((c) => c.method === "fillText" && c.args[0] === text)
+        .map((c) => ({ x: c.args[1] as number, y: c.args[2] as number }));
+    const serial = at("G-0NUJXA");
+    const powered = at("Powered by ");
+    expect(serial).toHaveLength(1);
+    expect(powered).toHaveLength(1);
+    expect(serial[0].x).toBe(Math.round(638 * 0.055));
+    expect(powered[0].x).toBeGreaterThan(serial[0].x);
+    expect(powered[0].y).toBe(serial[0].y);
+    // Sub-CTA pindah ke hero: digambar sebelum kartu QR (CTA = isinya).
+    const idxSub = calls.findIndex(
+      (c) =>
+        c.method === "fillText" && String(c.args[0]).includes("dekatkan HP (NFC)"),
+    );
+    const idxCta = calls.findIndex(
+      (c) => c.method === "fillText" && c.args[0] === "SCAN ATAU TAP DI SINI",
+    );
+    expect(idxSub).toBeGreaterThanOrEqual(0);
+    expect(idxSub).toBeLessThan(idxCta);
   });
 
-  it("persegi memakai cabang portrait (CTA dan serial center)", () => {
+  it("persegi memakai cabang portrait (CTA center, serial kiri footer)", () => {
     const { ctx, calls } = createMockCtx();
     drawCard(ctx, {
       ...BASE_OPTS,
@@ -424,16 +457,16 @@ describe("drawCard", () => {
       calls
         .filter((c) => c.method === "fillText" && c.args[0] === text)
         .map((c) => c.args[1] as number);
-    // CTA digeser kanan oleh panah; serial tetap persis di pusat.
+    // CTA digeser kanan oleh panah; serial pindah ke kiri baris footer.
     const u = 827 / 100;
     const shift = (Math.round(u * 1.5) + Math.round(u * 0.8)) / 2;
     const ctaX = at("SCAN ATAU TAP DI SINI");
     expect(ctaX).toHaveLength(1);
     expect(Math.abs(ctaX[0] - (413.5 + shift))).toBeLessThanOrEqual(0.5);
-    expect(at("G-0NUJXA")).toEqual([413.5]);
+    expect(at("G-0NUJXA")).toEqual([Math.round(827 * 0.055)]);
   });
 
-  it("ikon contactless digambar bersama pill NFC (4 busur; badge centang +1)", () => {
+  it("ikon contactless digambar bersama pill NFC (4 busur; badge lobus poligon)", () => {
     class FakePath {
       rect() {}
     }
@@ -448,9 +481,9 @@ describe("drawCard", () => {
         showNfc: false,
       });
       const arcs = (c: Call[]) => c.filter((x) => x.method === "arc").length;
-      // +1 = lingkaran badge centang "Google Verified".
-      expect(arcs(withNfc.calls)).toBe(5);
-      expect(arcs(withoutNfc.calls)).toBe(1);
+      // Badge centang kini poligon lobus (tanpa arc): sisa hanya contactless.
+      expect(arcs(withNfc.calls)).toBe(4);
+      expect(arcs(withoutNfc.calls)).toBe(0);
     } finally {
       vi.unstubAllGlobals();
     }
@@ -609,6 +642,67 @@ describe("drawCard", () => {
   });
 });
 
+describe("siluet sudut kartu", () => {
+  it("save → clip gradien → fill; save/restore berpasangan", () => {
+    const { ctx, calls } = createMockCtx();
+    drawCard(ctx, BASE_OPTS);
+    const idxSave = calls.findIndex((c) => c.method === "save");
+    const idxClip = calls.findIndex((c) => c.method === "clip");
+    const idxFill = calls.findIndex((c) => c.method === "fillRect");
+    expect(idxSave).toBeGreaterThanOrEqual(0);
+    expect(idxSave).toBeLessThan(idxClip);
+    // Latar diisi SETELAH clip supaya luar busur tetap transparan.
+    expect(idxClip).toBeLessThan(idxFill);
+    expect(calls.filter((c) => c.method === "save").length).toBe(
+      calls.filter((c) => c.method === "restore").length,
+    );
+    const lastRestore = calls.reduce(
+      (acc, c, i) => (c.method === "restore" ? i : acc),
+      -1,
+    );
+    expect(lastRestore).toBeGreaterThan(idxClip);
+  });
+
+  it("tanpa bleed: clip pertama = rounded rect penuh radius 0,07 × min sisi", () => {
+    const { ctx, calls } = createMockCtx();
+    drawCard(ctx, BASE_OPTS);
+    const clips = collectTraces(calls).filter((t) => t.action === "clip");
+    expect(clips.length).toBeGreaterThanOrEqual(2);
+    const outer = clips[0];
+    expect(outer.moveTo[1]).toBe(0);
+    expect(outer.arcTos[0][4]).toBe(
+      Math.round(Math.min(1011, 638) * CARD_RADIUS_FACTOR),
+    );
+    // Clip kedua (trim) identik karena tanpa bleed.
+    expect(clips[1].arcTos[0][4]).toBe(outer.arcTos[0][4]);
+  });
+
+  it("dengan bleed: siluet melebar radius + bleedPx, clip kedua inset bleed", () => {
+    const size = CARD_SIZES.find((s) => s.id === "pvc-h")!;
+    const d = exportDims(size, true);
+    const bleedPx = mmToPx(BLEED_MM);
+    const { ctx, calls } = createMockCtx();
+    drawCard(ctx, {
+      ...BASE_OPTS,
+      widthPx: d.widthPx,
+      heightPx: d.heightPx,
+      bleed: true,
+    });
+    const clips = collectTraces(calls).filter((t) => t.action === "clip");
+    // Clip ke-3 datang dari pembungkus kartu QR (tak relevan di sini).
+    expect(clips.length).toBeGreaterThanOrEqual(2);
+    const tw = d.widthPx - bleedPx * 2;
+    const th = d.heightPx - bleedPx * 2;
+    const radius = Math.round(Math.min(tw, th) * CARD_RADIUS_FACTOR);
+    // Bentuk luar: penuh sampai tepi kanvas, radius kompensasi bleed.
+    expect(clips[0].moveTo[1]).toBe(0);
+    expect(clips[0].arcTos[0][4]).toBe(radius + bleedPx);
+    // Trim tetap di garis potong.
+    expect(clips[1].moveTo[1]).toBe(bleedPx);
+    expect(clips[1].arcTos[0][4]).toBe(radius);
+  });
+});
+
 describe("elemen mockup baru", () => {
   it("strip pelangi biru-hijau-emas dan latar bergradien", () => {
     const { ctx, calls } = createMockCtx();
@@ -697,5 +791,24 @@ describe("qrCardLayout", () => {
   it("dijepit tinggi zona yang tersedia", () => {
     const lay = qrCardLayout(33, 5000, 200, 10);
     expect(lay.cardH).toBeLessThanOrEqual(200);
+  });
+
+  it("exactStride memakai sel lebih besar; legacy (pvc-h) tak berubah", () => {
+    for (const moduleCount of [21, 33, 45, 57]) {
+      for (const availW of [300, 500, 700]) {
+        const legacy = qrCardLayout(moduleCount, availW, 100000, 10);
+        const exact = qrCardLayout(moduleCount, availW, 100000, 10, true);
+        expect(exact.cell).toBeGreaterThanOrEqual(legacy.cell);
+        // Keduanya tetap muat di lebar avail.
+        expect(exact.cardW).toBeLessThanOrEqual(availW);
+        expect(legacy.cardW).toBeLessThanOrEqual(availW);
+      }
+    }
+    // Jalur exact: panel = cell × (n + 4 modul innerPad).
+    const exact = qrCardLayout(45, 1000, 100000, 10, true);
+    expect(exact.panelW).toBe(exact.cell * (45 + 4 + QR_QUIET_MODULES * 2));
+    // Tinggi juga dijepit zona avail.
+    const tall = qrCardLayout(45, 5000, 300, 10, true);
+    expect(tall.cardH).toBeLessThanOrEqual(300);
   });
 });

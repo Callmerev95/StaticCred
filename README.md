@@ -66,6 +66,7 @@ Deploy: Vercel. Generator/preview/export tetap berjalan tanpa env (render client
 
 ## Kredit aset
 - Ikon contactless pada pill TAP NFC: Contactless icon from Flaticon (ID 6107543).
+- Badge centang "Google Verified": Verified badge icon from Flaticon (ID 7641727).
 
 ## Kontribusi / tiket
 Tiket hidup di GitHub Issues (`Callmerev95/StaticCred`), label triase: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`. Tiket awal: #1–#8.

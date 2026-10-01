@@ -69,7 +69,8 @@ export const CARD_THEMES: Record<CardThemeId, CardTheme> = {
     pillFg: "#E9EEF7",
     nfcIcon: "#70A3F3",
     qrCardBg: "#111729",
-    qrCardBorder: "#1D2537",
+    // Garis tepian pembungkus QR: 3,3:1 vs qrCardBg (WCAG 1.4.11 ≥3:1).
+    qrCardBorder: "#5F6B80",
     qrCardShadow: null,
     qrPanel: "#FFFFFF",
     qrFg: "#111729",

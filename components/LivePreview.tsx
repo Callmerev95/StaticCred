@@ -267,7 +267,7 @@ export default function LivePreview({
               style={canvasStyle}
               role="img"
               aria-label={`Preview kartu ${size.label}`}
-              className="block h-auto max-w-none rounded-lg shadow-sm"
+              className="block h-auto max-w-none shadow-sm"
             />
             {form.bleed && zoom === "fit" && (
               <div
