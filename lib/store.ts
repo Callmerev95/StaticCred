@@ -183,6 +183,22 @@ export async function recordScan(id: string): Promise<number | null> {
   return n;
 }
 
+// Hapus permanen satu serial dari KV (ADR-0006): aktif, pending, hitungan
+// scan, dan lock PIN. Key cache resolver (pl:*) bukan data kartu, dibiarkan.
+// Kembalikan jumlah key yang benar-benar terhapus; -1 bila KV mati.
+export async function deleteCard(id: string): Promise<number> {
+  if (!isValidCardId(id)) return 0;
+  if (!kvAvailable()) return -1;
+  const results = await kvExecAll([
+    ["DEL", activeKey(id)],
+    ["DEL", pendingKey(id)],
+    ["DEL", scanKey(id)],
+    ["DEL", failKey(id)],
+    ["DEL", lockKey(id)],
+  ]);
+  return results.filter((r) => r === 1).length;
+}
+
 // true = ditolak (melewati batas). KV mati = tanpa limit (aktivasi juga tak jalan).
 export async function rateLimited(
   bucket: string,

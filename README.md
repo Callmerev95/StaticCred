@@ -9,7 +9,7 @@ Tools web untuk UMKM mencetak kartu, standee, dan stiker ajakan review Google & 
 - **5 varian ukuran siap cetak 300 DPI** (lihat tabel di bawah).
 - **Dua mode QR:** `Link Langsung` (QR berisi URL review asli) dan `Cetak Kosong` (QR berpola `…/r/G-XXXXXX` untuk stok reseller yang diaktivasi belakangan oleh pembeli).
 - **Aktivasi Cetak Kosong:** pembeli scan → form aktivasi (`/r/[id]/activate`) isi nama toko, link Google Maps, dan PIN → kartu aktif → scan berikutnya menampilkan konfirmasi nama toko sebelum membuka ulasan. Ubah link kapan saja lewat `/r/[id]/manage` (gerbang PIN). Batch "Buat 50 ID" + ekspor CSV untuk reseller.
-- **Daftar kartu pemilik (`/cards`):** total kartu terbit, aktif, pending, dan total scan, plus filter dan tombol kelola per kartu. Di balik PIN admin, bukan halaman publik.
+- **Daftar kartu pemilik (`/cards`):** total kartu terbit, aktif, pending, dan total scan, plus filter, tombol kelola per kartu, dan hapus permanen per baris (PIN admin diketik ulang). Di balik PIN admin, bukan halaman publik.
 - **Live preview WYSIWYG** dengan toggle 5 Bintang, Ikon NFC, Serial ID, dan Bleed (3 mm + crop marks).
 - **Dua Tema Kartu independen** (`dark` elegan dan `google` official) yang tidak terpengaruh Tema Aplikasi.
 - **Export PNG** (dimensi piksel tepat) dan **PDF** (ukuran milimeter tepat, embed PNG 1:1).

@@ -4,11 +4,14 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
+import { deleteCardAction } from "@/lib/actions";
 import { formatCardDate } from "@/lib/cards-format";
 import type { ListedCard } from "@/lib/store";
 import {
   BTN_SECONDARY,
   BTN_SMALL,
+  ERROR_BOX,
+  LABEL_CAPTION,
   LABEL_EYEBROW,
 } from "@/lib/ui-classes";
 import QrOverlay from "./QrOverlay";
@@ -50,9 +53,39 @@ function CopyButton({ text }: { text: string }) {
   );
 }
 
-function CardRow({ card, base }: { card: ListedCard; base: string }) {
+function CardRow({
+  card,
+  base,
+  onDeleted,
+}: {
+  card: ListedCard;
+  base: string;
+  onDeleted: (id: string) => void;
+}) {
   const active = card.status === "active";
   const [qrOpen, setQrOpen] = useState(false);
+  const [confirming, setConfirming] = useState(false);
+  const [pin, setPin] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function confirmDelete() {
+    if (busy) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const result = await deleteCardAction(card.id, pin);
+      if (result.ok) {
+        onDeleted(card.id);
+      } else {
+        setError(result.error ?? "Gagal menghapus.");
+      }
+    } catch {
+      setError("Koneksi bermasalah. Coba lagi.");
+    } finally {
+      setBusy(false);
+    }
+  }
   return (
     <li className="rounded-3xl border border-hairline bg-paper p-5 shadow-sm">
       <div className="flex flex-wrap items-center justify-between gap-2">
@@ -131,7 +164,72 @@ function CardRow({ card, base }: { card: ListedCard; base: string }) {
             <CopyButton text={`${base}/r/${card.id}/activate`} />
           </>
         )}
+        <button
+          type="button"
+          onClick={() => {
+            setConfirming((v) => !v);
+            setError(null);
+            setPin("");
+          }}
+          aria-expanded={confirming}
+          className="inline-flex min-h-9 items-center rounded-full border border-ember/40 px-3 text-xs font-semibold text-ember transition-colors hover:bg-ember/5 focus-visible:ring-2 focus-visible:ring-ember focus-visible:outline-none"
+        >
+          Hapus
+        </button>
       </div>
+      {confirming && (
+        <div className="mt-4 rounded-2xl border border-ember/40 bg-ember/5 p-4">
+          <p className="text-sm font-semibold text-ink">
+            Hapus permanen {card.id}?
+          </p>
+          <p className={`mt-1 text-xs text-deep-gray`}>
+            Kartu hilang dari database dan tak bisa dikembalikan. Kartu fisik
+            yang sudah tercetak ikut mati.
+          </p>
+          <label
+            htmlFor={`hapus-pin-${card.id}`}
+            className={`mt-3 block ${LABEL_CAPTION}`}
+          >
+            Ketik PIN admin untuk setuju
+          </label>
+          <input
+            id={`hapus-pin-${card.id}`}
+            type="password"
+            inputMode="numeric"
+            autoComplete="off"
+            value={pin}
+            onChange={(e) => setPin(e.target.value)}
+            placeholder="PIN admin"
+            className="mt-1 w-full rounded-2xl border border-hairline bg-paper px-4 py-2.5 text-sm text-ink placeholder:text-mid-gray focus:border-ink focus:outline-none"
+          />
+          {error && (
+            <p role="alert" className={ERROR_BOX}>
+              {error}
+            </p>
+          )}
+          <div className="mt-3 flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={confirmDelete}
+              disabled={busy || pin.trim().length === 0}
+              className="inline-flex min-h-9 items-center rounded-full bg-ember px-4 text-xs font-semibold text-paper focus-visible:ring-2 focus-visible:ring-ember focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {busy ? "Menghapus..." : "Hapus permanen"}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setConfirming(false);
+                setError(null);
+                setPin("");
+              }}
+              className={BTN_SMALL}
+            >
+              Batal
+            </button>
+          </div>
+        </div>
+      )}
     </li>
   );
 }
@@ -144,20 +242,22 @@ export default function CardsList({
   base: string;
 }) {
   const [filter, setFilter] = useState<Filter>("all");
+  const [removed, setRemoved] = useState<string[]>([]);
   const router = useRouter();
+  const live = cards.filter((c) => !removed.includes(c.id));
   const counts = useMemo(
     () => ({
-      all: cards.length,
-      active: cards.filter((c) => c.status === "active").length,
-      pending: cards.filter((c) => c.status !== "active").length,
+      all: live.length,
+      active: live.filter((c) => c.status === "active").length,
+      pending: live.filter((c) => c.status !== "active").length,
     }),
-    [cards],
+    [live],
   );
   const totalScan = useMemo(
-    () => cards.reduce((sum, c) => sum + c.scan, 0),
-    [cards],
+    () => live.reduce((sum, c) => sum + c.scan, 0),
+    [live],
   );
-  const shown = cards.filter((c) =>
+  const shown = live.filter((c) =>
     filter === "all" ? true : c.status === filter,
   );
   const tabs: Array<{ id: Filter; label: string }> = [
@@ -242,7 +342,12 @@ export default function CardsList({
       ) : (
         <ul className="flex flex-col gap-4">
           {shown.map((card) => (
-            <CardRow key={card.id} card={card} base={base} />
+            <CardRow
+              key={card.id}
+              card={card}
+              base={base}
+              onDeleted={(id) => setRemoved((r) => [...r, id])}
+            />
           ))}
         </ul>
       )}

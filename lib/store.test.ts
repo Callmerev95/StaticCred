@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { hashPin } from "./pin";
 import {
   claimCard,
+  deleteCard,
   getActiveCard,
   listCards,
   rateLimited,
@@ -322,5 +323,44 @@ describe("listCards", () => {
     expect(cards).toHaveLength(1);
     expect(urls.some((u) => u.endsWith("/pipeline"))).toBe(true);
     expect(urls.some((u) => !u.endsWith("/pipeline"))).toBe(true);
+  });
+});
+
+describe("deleteCard", () => {
+  it("-1 tanpa KV, 0 untuk serial invalid", async () => {
+    mockFetch(() => null);
+    expect(await deleteCard("G-ABCDEF")).toBe(-1);
+    expect(await deleteCard("salah")).toBe(0);
+  });
+
+  it("menghapus kelima key via satu pipeline DEL", async () => {
+    setEnv();
+    const deleted: string[] = [];
+    let calls = 0;
+    mockFetch((cmd) => {
+      calls += 1;
+      if (cmd[0] === "DEL") {
+        deleted.push(String(cmd[1]));
+        // Hanya ada key card + scan untuk serial ini.
+        if (String(cmd[1]).startsWith("card:") || String(cmd[1]).startsWith("scan:")) return 1;
+        return 0;
+      }
+      return null;
+    });
+    expect(await deleteCard("G-DEADED")).toBe(2);
+    expect(deleted).toEqual([
+      "card:G-DEADED",
+      "pend:G-DEADED",
+      "scan:G-DEADED",
+      "fp:G-DEADED",
+      "lk:G-DEADED",
+    ]);
+    expect(calls).toBe(5);
+  });
+
+  it("kartu tak ada → 0, tanpa throw", async () => {
+    setEnv();
+    mockFetch(() => 0);
+    expect(await deleteCard("G-ABCDEF")).toBe(0);
   });
 });

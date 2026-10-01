@@ -24,7 +24,7 @@ Tools web untuk UMKM mencetak kartu / standee / stiker ajakan review Google & Tr
 - Tema ganda independen: Tema Aplikasi (light/dark, system + toggle) hanya untuk chrome; Tema Kartu (`dark` default / `google` official) untuk hasil cetak via segmen kontrol. Spesifikasi: `DESIGN.md` § Dark Theme + § Card Themes.
 - Export: PNG dimensi piksel tepat + PDF ukuran mm tepat (embed PNG, bukan raster ulang).
 - Stack: Next.js (App Router) + TypeScript + Canvas native + Tailwind. Deploy Vercel.
-- Daftar kartu `/cards` (ADR-0006, di balik PIN admin global `ADMIN_PIN`): total terbit, aktif, pending, total scan, filter Semua/Aktif/Pending, Tes Link + Kelola per kartu aktif, Salin Link per kartu pending. Tanpa PIN/KV tampil kondisi jujur. Versi publik tanpa gerbang tetap keluar (ADR-0005).
+- Daftar kartu `/cards` (ADR-0006, di balik PIN admin global `ADMIN_PIN`): total terbit, aktif, pending, total scan, filter Semua/Aktif/Pending, Tes Link + Kelola per kartu aktif, Salin Link per kartu pending, Hapus permanen per baris (dua lapis: sesi valid + PIN diketik ulang, tanpa undo). Tanpa PIN/KV tampil kondisi jujur. Versi publik tanpa gerbang tetap keluar (ADR-0005).
 
 ### Keluar (non-goals V1)
 - Dashboard `/cards` versi publik tanpa gerbang: cek status per kartu cukup via `/r/[id]/manage`.
@@ -45,7 +45,7 @@ Tools web untuk UMKM mencetak kartu / standee / stiker ajakan review Google & Tr
 - [ ] Aktivasi sukses → halaman "Kartu Berhasil Diaktifkan" + pengingat simpan PIN; balapan dua submit = first-wins.
 - [ ] ID format salah → 404; link tujuan non-Google ditolak server-side (bukan hanya klien).
 - [ ] PIN salah 5× → jeda 15 menit per serial; ≥10 aktivasi/jam/IP ditolak; `/manage` tak tampil sebelum PIN benar.
-- [ ] `/cards` tanpa cookie sesi hanya menampilkan form PIN; PIN admin benar → total terbit = aktif + pending, filter Semua/Aktif/Pending cocok, Salin Link menyalin URL aktivasi absolut. Tanpa `ADMIN_PIN` atau tanpa KV hanya tampil kondisi jujur.
+- [ ] `/cards` tanpa cookie sesi hanya menampilkan form PIN; PIN admin benar → total terbit = aktif + pending, filter Semua/Aktif/Pending cocok, Salin Link menyalin URL aktivasi absolut. Tanpa `ADMIN_PIN` atau tanpa KV hanya tampil kondisi jujur. Hapus per baris meminta PIN ulang; PIN salah/sesi mati → tak ada yang terhapus; sukses → baris hilang dan angka turun.
 - [ ] Toggle 5 Bintang / NFC / Serial / Bleed tampil-sembunyi real-time di preview maupun export.
 - [ ] PNG diekspor pada resolusi tabel §3 persis (byte-check dimensi).
 - [ ] PDF berukuran mm persis per varian (boleh dicek di Acrobat preflight).

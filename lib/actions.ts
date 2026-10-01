@@ -3,12 +3,14 @@
 "use server";
 
 import { headers } from "next/headers";
+import { cookies } from "next/headers";
 import { kvAvailable } from "@/lib/kv";
 import { isGoogleReviewLink, isValidCardId } from "@/lib/qr";
 import { resolveReviewUrl } from "@/lib/resolve-review";
 import { toWriteReviewUrl } from "@/lib/review-url";
 import { isValidPin, hashPin } from "@/lib/pin";
-import { ACTIVATION_RATE_MAX, REGISTER_RATE_MAX, claimCard, getActiveCard, rateLimited, registerSerials, updateActiveCard, verifyCardPin } from "@/lib/store";
+import { CARDS_COOKIE, verifyAdminPin, verifyCardsSession } from "@/lib/cards-auth";
+import { ACTIVATION_RATE_MAX, REGISTER_RATE_MAX, claimCard, deleteCard, getActiveCard, rateLimited, registerSerials, updateActiveCard, verifyCardPin } from "@/lib/store";
 
 export interface ActionResult {
   ok: boolean;
@@ -170,4 +172,36 @@ export async function registerSerialsAction(
   } catch {
     return { registered: 0, available: true };
   }
+}
+
+export interface DeleteResult {
+  ok: boolean;
+  error?: string;
+  deleted?: number;
+}
+
+// Hapus permanen satu kartu dari /cards (ADR-0006). Dua lapis wajib lolos:
+// cookie sesi halaman masih valid DAN PIN admin diketik ulang dengan benar.
+// Permanen, tak bisa undo: kartu tercetak fisik ikut mati.
+export async function deleteCardAction(
+  serial: string,
+  pin: string,
+): Promise<DeleteResult> {
+  const id = serial.trim();
+  if (!isValidCardId(id)) return { ok: false, error: "Serial kartu tidak dikenal." };
+  const jar = await cookies();
+  if (!verifyCardsSession(jar.get(CARDS_COOKIE)?.value)) {
+    return { ok: false, error: "Sesi pemilik kedaluwarsa. Masukkan PIN di halaman daftar dulu." };
+  }
+  if (!verifyAdminPin(pin.trim())) {
+    return { ok: false, error: "PIN admin salah." };
+  }
+  const deleted = await deleteCard(id);
+  if (deleted < 0) {
+    return { ok: false, error: "Layanan aktivasi belum terkonfigurasi di server ini." };
+  }
+  if (deleted === 0) {
+    return { ok: false, error: "Kartu tidak ditemukan (mungkin sudah terhapus)." };
+  }
+  return { ok: true, deleted };
 }

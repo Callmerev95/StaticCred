@@ -16,6 +16,7 @@ Route `/cards` (server, `force-dynamic`, `robots index false`):
 - Pipeline wajib ke endpoint `<url>/pipeline` Upstash; array yang dikirim ke base URL ditolak server ("unsupported arg type"). Perintah tunggal (GET/SCAN) tetap ke base URL. Database gagal dibaca menampilkan error state jujur + tombol muat ulang, bukan crash digest.
 - Statistik (Total Terbit, Aktif, Pending, Total Scan) dan filter Semua/Aktif/Pending dihitung dari hasil yang sama, tanpa fetch ulang.
 - Copas link aktivasi via tombol Salin Link per baris pending.
+- Hapus permanen per baris via `deleteCardAction`: wajib lolos dua lapis (cookie sesi valid DAN PIN admin diketik ulang), menghapus kelima key (`card:`, `pend:`, `scan:`, `fp:`, `lk:`) dalam satu pipeline `DEL`. Permanen tanpa undo; baris hilang dan statistik turun tanpa reload.
 
 ## Considered Options
 - **Publik tanpa PIN seperti referensi**: ditolak, melanggar ADR-0005 (link tujuan klien bocor ke siapa pun).
