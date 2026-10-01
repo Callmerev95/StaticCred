@@ -281,13 +281,12 @@ describe("qrBoxLayout", () => {
         t.moveTo[1] >= box.bottom,
     );
     expect(pill).toBeDefined();
-    // CTA digeser kanan karena panah memimpin di kiri.
-    const shift = (Math.round(u * 1.5) + Math.round(u * 0.8)) / 2;
+    // CTA kini tepat di tengah panel (panah bawah sudah dihapus).
     const cta = calls.find(
       (c) => c.method === "fillText" && c.args[0] === "SCAN ATAU TAP DI SINI",
     );
     expect(cta).toBeDefined();
-    expect(cta!.args[1] as number).toBe(box.left + lay.panelW / 2 + shift);
+    expect(cta!.args[1] as number).toBe(box.left + lay.panelW / 2);
   });
 });
 
@@ -457,12 +456,10 @@ describe("drawCard", () => {
       calls
         .filter((c) => c.method === "fillText" && c.args[0] === text)
         .map((c) => c.args[1] as number);
-    // CTA digeser kanan oleh panah; serial pindah ke kiri baris footer.
-    const u = 827 / 100;
-    const shift = (Math.round(u * 1.5) + Math.round(u * 0.8)) / 2;
+    // CTA tepat tengah (413.5); serial pindah ke kiri baris footer.
     const ctaX = at("SCAN ATAU TAP DI SINI");
     expect(ctaX).toHaveLength(1);
-    expect(Math.abs(ctaX[0] - (413.5 + shift))).toBeLessThanOrEqual(0.5);
+    expect(Math.abs(ctaX[0] - 413.5)).toBeLessThanOrEqual(0.5);
     expect(at("G-0NUJXA")).toEqual([Math.round(827 * 0.055)]);
   });
 

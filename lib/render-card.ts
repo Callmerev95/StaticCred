@@ -552,35 +552,8 @@ function drawCheckBadge(
   ctx.restore();
 }
 
-// Panah bawah di kiri label pill CTA.
-function drawArrowDown(
-  ctx: CanvasRenderingContext2D,
-  color: string,
-  ax: number,
-  cy: number,
-  w: number,
-  h: number,
-  u: number,
-): void {
-  ctx.save();
-  ctx.strokeStyle = color;
-  ctx.lineWidth = Math.max(2, Math.round(u * 0.3));
-  ctx.lineCap = "round";
-  ctx.lineJoin = "round";
-  ctx.beginPath();
-  ctx.moveTo(ax, cy - h / 2);
-  ctx.lineTo(ax, cy + h / 2);
-  const hw = w / 2;
-  const hh = w * 0.45;
-  ctx.moveTo(ax - hw, cy + h / 2 - hh);
-  ctx.lineTo(ax, cy + h / 2);
-  ctx.lineTo(ax + hw, cy + h / 2 - hh);
-  ctx.stroke();
-  ctx.restore();
-}
-
 // Kartu QR: bayangan + isi, strip pelangi, panel, modul, bracket, logo
-// center, pill CTA dengan panah. Mengembalikan ukuran kartu.
+// center, pill CTA teks center. Mengembalikan ukuran kartu.
 function drawQrCard(
   ctx: CanvasRenderingContext2D,
   theme: CardTheme,
@@ -664,11 +637,9 @@ function drawQrCard(
   ctx.fillStyle = theme.ctaBg;
   fillRoundRect(ctx, panelX, pillY, lay.panelW, lay.ctaH, lay.ctaH / 2);
 
-  // Konten [panah][jarak][label] dipusatkan dalam pill.
-  const arrowW = Math.round(u * 1.5);
-  const arrowGap = Math.round(u * 0.8);
+  // Konten [label] dipusatkan dalam pill.
   const sidePad = Math.round(u * 1.2);
-  const labelRoom = lay.panelW - sidePad * 2 - (arrowW + arrowGap);
+  const labelRoom = lay.panelW - sidePad * 2;
   ctx.fillStyle = theme.ctaFg;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
@@ -681,23 +652,7 @@ function drawQrCard(
     setFont(ctx, 700, ctaSize);
   }
   const label = truncateSingle(ctx, cta, labelRoom);
-  const labelW = ctx.measureText(label).width;
-  const contentW = arrowW + arrowGap + labelW;
-  const contentLeft = pillCx - contentW / 2;
-  ctx.fillText(
-    label,
-    contentLeft + arrowW + arrowGap + labelW / 2,
-    pillCy,
-  );
-  drawArrowDown(
-    ctx,
-    theme.ctaFg,
-    contentLeft + arrowW / 2,
-    pillCy,
-    arrowW,
-    Math.round(u * 2.0),
-    u,
-  );
+  ctx.fillText(label, pillCx, pillCy);
   return { cardW: lay.cardW, cardH: lay.cardH };
 }
 
@@ -865,11 +820,14 @@ function drawHeader(
   ctx.fillStyle = theme.verified;
   const verified = truncateSingle(ctx, VERIFIED_LABEL, line1Room);
   ctx.fillText(verified, textX, line1Cy);
+  // Badge rata bawah baseline teks "Google Verified" (bukan tengah cap):
+  // tepi bawah badge = baseline, dengan baseline dihitung dari middle + 0.31·fs1.
+  const baseY = line1Cy + Math.round(fs1 * 0.31);
   drawCheckBadge(
     ctx,
     theme.qrAccent,
     textX + ctx.measureText(verified).width + checkGap + checkD / 2,
-    line1Cy,
+    baseY - Math.round(checkD / 2),
     checkD,
   );
 
