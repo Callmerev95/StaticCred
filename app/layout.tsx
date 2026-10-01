@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import SiteNav from "@/components/SiteNav";
 import ThemeProvider from "@/components/ThemeProvider";
+import { SITE_NAME, SITE_TAGLINE, siteUrl } from "@/lib/site";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -15,9 +16,40 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "StaticCred - Review Card Printer",
-  description:
-    "Kartu review Google/TripAdvisor 300 DPI, dibuat langsung di browser.",
+  metadataBase: new URL(siteUrl()),
+  title: {
+    default: `${SITE_NAME} - Cetak Kartu Review Google & TripAdvisor 300 DPI`,
+    template: `%s | ${SITE_NAME}`,
+  },
+  description: SITE_TAGLINE,
+  applicationName: SITE_NAME,
+  keywords: [
+    "kartu review google",
+    "qr code review google",
+    "cetak kartu review",
+    "google review card",
+    "standee qr review",
+    "stiker qr kasir",
+    "tripadvisor review card",
+    "300 dpi print",
+  ],
+  authors: [{ name: SITE_NAME }],
+  creator: SITE_NAME,
+  alternates: { canonical: "/" },
+  openGraph: {
+    type: "website",
+    locale: "id_ID",
+    siteName: SITE_NAME,
+    title: `${SITE_NAME} - Cetak Kartu Review Google & TripAdvisor 300 DPI`,
+    description: SITE_TAGLINE,
+    url: "/",
+  },
+  twitter: {
+    card: "summary",
+    title: `${SITE_NAME} - Cetak Kartu Review Google & TripAdvisor 300 DPI`,
+    description: SITE_TAGLINE,
+  },
+  robots: { index: true, follow: true },
 };
 
 export default function RootLayout({
