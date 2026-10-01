@@ -4,7 +4,7 @@
 - Date: 2026-09-29
 
 ## Context
-`DESIGN.md` (light monokrom) konflik dengan `reference/*.png` (dark). User memutuskan: app punya dark/light, kartu punya dark/google-official. Risiko: tema app bocor ke piksel cetak, atau satu flag mengontrol keduanya.
+`DESIGN.md` (light monokrom) konflik dengan mockup acuan awal (dark). User memutuskan: app punya dark/light, kartu punya dark/google-official. Risiko: tema app bocor ke piksel cetak, atau satu flag mengontrol keduanya.
 
 ## Decision
 Dua sumbu independen:

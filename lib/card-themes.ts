@@ -1,8 +1,6 @@
 // Token Tema Kartu untuk hasil cetak. Sumbu independen dari Tema Aplikasi:
 // canvas menggambar piksel sendiri tanpa membaca CSS. Lihat ADR-0004,
-// DESIGN.md § Card Themes.
-// Nilai diukur dari piksel reference/google-lightmode.png dan
-// reference/google-darkmode.png (u = 9,76 px di mockup).
+// DESIGN.md § Card Themes. Nilai diukur dari mockup acuan (u = 9,76 px).
 
 export type CardThemeId = "dark" | "google";
 

@@ -3,8 +3,6 @@
 ## 1. Ringkasan
 Tools web untuk UMKM mencetak kartu / standee / stiker ajakan review Google & TripAdvisor. Paste link → live preview → download PNG + PDF siap cetak 300 DPI. Zero backend, 100% render di browser via Canvas API.
 
-Referensi UI: `reference/input-QR.png`, `reference/input-QR-kosong.png`, `reference/live-preview.png`.
-
 ## 2. Pengguna
 - Pemilik usaha (cetak untuk tokonya sendiri, mode `Link Langsung`).
 - Reseller (cetak stok kosong tanpa nama toko, mode `Cetak Kosong`, aktivasi belakangan oleh pembeli).
@@ -22,7 +20,7 @@ Referensi UI: `reference/input-QR.png`, `reference/input-QR-kosong.png`, `refere
 - Mode QR ganda: `Link Langsung` (QR = URL review asli) dan `Cetak Kosong` (QR = pola `https://<app>/r/G-XXXXXX`, ID kartu `G-` + 6 dari alfabet 33 tanpa I/L/O, tombol ID Baru + Buka Link + Buat 50 ID + ekspor CSV).
 - Aktivasi Cetak Kosong (ADR-0005): route `/r/[id]` (307 ke activate bila belum aktif; interstitial konfirmasi + hitung scan bila aktif), `/r/[id]/activate` (form nama + link Google + PIN, validasi server, halaman sukses), `/r/[id]/manage` (gerbang PIN, ubah nama/link/PIN). Storage Vercel KV; lazy + daftar-pasif saat ID dibuat; rate-limit IP, lockout PIN, first-wins.
 - Form: link review (Google Maps `writereview?placeid=` + TripAdvisor, paste bebas V1), nama usaha (max 60 char + counter), collapsible Ubah Teks Kartu (Judul, Badge, CTA), toggle: 5 Bintang, Ikon NFC, Serial ID, Bleed.
-- Live preview WYSIWYG + toggle: 5 Bintang, Ikon NFC, Serial ID, Bleed (3 mm + crop marks). Layout mengikuti `reference/stitch-reference.png`: badge dimensi dinamis, kontrol zoom 75%/100%/Fit (CSS scale), dotted background, footer `Output Piksel` + `Salin Ringkasan` + `Reset Form`.
+- Live preview WYSIWYG + toggle: 5 Bintang, Ikon NFC, Serial ID, Bleed (3 mm + crop marks). Badge dimensi dinamis, kontrol zoom 75%/100%/Fit (CSS scale), dotted background, footer `Output Piksel` + `Salin Ringkasan` + `Reset Form`.
 - Tema ganda independen: Tema Aplikasi (light/dark, system + toggle) hanya untuk chrome; Tema Kartu (`dark` default / `google` official) untuk hasil cetak via segmen kontrol. Spesifikasi: `DESIGN.md` § Dark Theme + § Card Themes.
 - Export: PNG dimensi piksel tepat + PDF ukuran mm tepat (embed PNG, bukan raster ulang).
 - Stack: Next.js (App Router) + TypeScript + Canvas native + Tailwind. Deploy Vercel.

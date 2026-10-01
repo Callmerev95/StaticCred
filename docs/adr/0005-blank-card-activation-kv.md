@@ -5,7 +5,7 @@
 - Supersedes: ADR-0003
 
 ## Context
-ADR-0003 memutuskan QR Cetak Kosong hanya pola URL placeholder tanpa resolver, sehingga setiap kartu tercetak berujung halaman mati. Janji produk "stok reseller, aktivasi belakangan oleh pembeli" (PRD §2) tidak pernah terwujud. Referensi `reference/form-aktivasi.png` + `reference/panduan.png` menunjukkan alur aktivasi yang diinginkan: buyer scan → form isi nama toko, link Google Maps, PIN → kartu aktif → scan berikutnya diarahkan ke review.
+ADR-0003 memutuskan QR Cetak Kosong hanya pola URL placeholder tanpa resolver, sehingga setiap kartu tercetak berujung halaman mati. Janji produk "stok reseller, aktivasi belakangan oleh pembeli" (PRD §2) tidak pernah terwujud. Alur aktivasi yang diinginkan: buyer scan → form isi nama toko, link Google Maps, PIN → kartu aktif → scan berikutnya diarahkan ke review.
 
 ## Decision
 Pakai Vercel KV/Upstash Redis sebagai satu-satunya storage mapping `serial → {nama, url, pinHash, createdAt, updatedAt}`. Route Next.js App Router:

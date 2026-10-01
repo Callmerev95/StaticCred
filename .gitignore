@@ -39,3 +39,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# mockup acuan lokal (tak di-commit, lihat DESIGN.md)
+/reference/

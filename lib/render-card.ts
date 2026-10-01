@@ -1,6 +1,6 @@
 // Satu sumber render kartu review untuk preview dan export.
 // Semua koordinat dalam piksel export, satuan turunan u = tw/100. Nilai
-// diukur dari piksel reference/google-lightmode.png + google-darkmode.png.
+// diukur dari piksel mockup acuan.
 // Cabang landscape (pvc-h) dua kolom, cabang portrait (lainnya) kolom tengah.
 // Lihat ADR-0002, CONTEXT.md, DESIGN.md § Card Themes.
 import qrcode from "qrcode-generator";

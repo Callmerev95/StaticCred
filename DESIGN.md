@@ -212,7 +212,7 @@ Rules: radius 18px interactive / 24px containers unchanged; preview dot-grid bac
 
 ## Card Themes (Print — Canvas tokens, not CSS)
 
-Independent axis from app theme. Passed as `cardTheme` into `drawCard(ctx, {...})`. Two themes only. Default: `dark`. Layout source: `reference/google-lightmode.png` + `reference/google-darkmode.png` (semua ukuran diukur dalam satuan `u = tw/100`).
+Independent axis from app theme. Passed as `cardTheme` into `drawCard(ctx, {...})`. Two themes only. Default: `dark`. Semua ukuran kartu diukur dalam satuan `u = tw/100`.
 
 Shared rules (both themes):
 - Card radius `0.07 × min-dimensi`; sudut transparan di luar busur: fill gradien di-clip ke round-rect dulu (radius `r + bleedPx` konsentris garis potong saat bleed aktif), jadi tak ada siluet kotak. Latar kartu bergradien vertikal (light `#FAFAFB`→`#EEF1F3`, dark `#161C2E`→`#111726`); border rambut mengikuti tema.

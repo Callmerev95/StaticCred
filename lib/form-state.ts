@@ -1,5 +1,5 @@
 // Bentuk state form kartu review. Satu objek ini yang dibaca preview (#6)
-// dan export (#7). Lihat PRD.md S4, reference/input-QR*.png.
+// dan export (#7). Lihat PRD.md S4.
 import type { CardThemeId } from "./card-themes";
 import { blankCardUrl, generateCardId } from "./qr";
 import { toWriteReviewUrl } from "./review-url";

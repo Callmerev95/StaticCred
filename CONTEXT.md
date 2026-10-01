@@ -35,10 +35,4 @@ Single-context. Baca file ini + `docs/adr/` sebelum mengerjakan kode.
 - Yang dihindari: menyebut ID-1/ID-2/ID-3 ISO (produk memakai ukuran custom di atas, bukan ISO 7810 murni), menyimpan link di server di luar jalur aktivasi KV, mengecilkan QR di bawah versi yang masih terbaca (beri warning jika payload > ~200 char).
 
 ## Referensi visual
-- `reference/stitch-reference.png`: ACUAN UTAMA layout live preview + kartu (gantikan `live-preview.png`).
-- `reference/live-preview.png`: arsip (tema kartu dark versi lama).
-- `reference/input-QR.png`: form Link Langsung.
-- `reference/input-QR-kosong.png`: form Cetak Kosong.
-- `reference/form-aktivasi.png`: acuan Halaman Aktivasi (form aktivasi).
-- `reference/panduan.png`: acuan kotak Panduan terbuka (toggle inline di bawah input link).
-- `DESIGN.md`: token light + Dark Theme (app) + Card Themes (cetak).
+- `DESIGN.md`: acuan UI/UX dan token kartu cetak. Mockup acuan hanya lokal (tak di-commit).

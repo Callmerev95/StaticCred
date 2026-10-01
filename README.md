@@ -70,7 +70,6 @@ Deploy di Vercel. Tanpa KV, route `/r/*` hanya menampilkan kondisi "belum aktif"
 ├── docs/
 │   ├── agents/          # konfigurasi issue tracker, triage, domain
 │   └── adr/             # keputusan arsitektur (0001–0006)
-├── reference/           # mockup UI acuan
 ├── app/                 # Next.js App Router: / , /cards, /r/[id], /r/[id]/activate, /r/[id]/manage
 ├── lib/                 # sizes, qr, render-card, store (KV), site (SEO)
 └── components/          # SiteNav, BusinessForm, LivePreview, ExportButtons, cards, activation
@@ -78,7 +77,7 @@ Deploy di Vercel. Tanpa KV, route `/r/*` hanya menampilkan kondisi "belum aktif"
 
 ## Dokumen
 
-- Kebutuhan: `PRD.md`. Istilah: `CONTEXT.md`. Acuan UI/UX: `DESIGN.md` + `reference/`. Arsitektur: `docs/adr/`.
+- Kebutuhan: `PRD.md`. Istilah: `CONTEXT.md`. Acuan UI/UX: `DESIGN.md`. Arsitektur: `docs/adr/`.
 - Kerja agen: `AGENTS.md` + `docs/agents/`.
 
 ## Kredit aset
