@@ -11,7 +11,7 @@ describe("site", () => {
   it("siteUrl punya fallback saat env kosong", () => {
     delete process.env.NEXT_PUBLIC_APP_URL;
     delete process.env.VERCEL_URL;
-    expect(siteUrl()).toBe("https://static-cred.vercel.app");
+    expect(siteUrl()).toBe("https://cards.callmerev.my.id");
   });
 
   it("nama situs konsisten", () => {

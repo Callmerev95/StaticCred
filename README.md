@@ -2,7 +2,7 @@
 
 Tools web untuk UMKM mencetak kartu, standee, dan stiker ajakan review Google & TripAdvisor. Tempel link review, atur tampilan di live preview, lalu unduh PNG atau PDF siap cetak 300 DPI. Generator, preview, dan export berjalan penuh di browser via Canvas API, tanpa upload ke server.
 
-**Live:** https://static-cred.vercel.app
+**Live:** https://cards.callmerev.my.id
 
 ## Fitur
 
@@ -72,7 +72,7 @@ Deploy di Vercel. Tanpa KV, route `/r/*` hanya menampilkan kondisi "belum aktif"
 │   └── adr/             # keputusan arsitektur (0001–0006)
 ├── app/                 # Next.js App Router: / , /cards, /r/[id], /r/[id]/activate, /r/[id]/manage
 ├── lib/                 # sizes, qr, render-card, store (KV), site (SEO)
-└── components/          # SiteNav, BusinessForm, LivePreview, ExportButtons, cards, activation
+└── components/          # SiteNav, BusinessForm, LivePreview, LogoQrForm, cards, activation
 ```
 
 ## Dokumen
@@ -87,7 +87,7 @@ Deploy di Vercel. Tanpa KV, route `/r/*` hanya menampilkan kondisi "belum aktif"
 
 ## Kontribusi / tiket
 
-Tiket hidup di GitHub Issues (`Callmerev95/StaticCred`), label triase: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`. Tiket awal: #1–#8.
+Tiket hidup di GitHub Issues (`Callmerev95/StaticCred`), label triase: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`. Tiket #1–#11 sudah tertutup semua (termasuk #8 ship/deploy setelah live di subdomain).
 
 ## Batasan V1
 

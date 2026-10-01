@@ -1,6 +1,6 @@
 # StaticCred
 
-Tools cetak kartu review Google / TripAdvisor, standar cetak 300 DPI, zero backend.
+Tools cetak kartu review Google / TripAdvisor, standar cetak 300 DPI. Render client-side; aktivasi dan daftar kartu via Vercel KV.
 
 ## Agent skills
 
@@ -18,7 +18,7 @@ Single-context: root `CONTEXT.md` + `docs/adr/`. See `docs/agents/domain.md`.
 
 ## Project
 
-- Stack: Next.js + TypeScript + Canvas native, tanpa backend.
+- Stack: Next.js + TypeScript + Canvas native + Vercel KV (aktivasi, daftar kartu).
 - Alur: paste link review → live preview → download PNG / PDF siap cetak.
 - Ukuran: PVC horizontal 85.6×54, PVC vertikal 54×85.6, Standee A6 105×148, Standee A7 74×105, Stiker 70×70 (mm, 300 DPI).
 - Mode QR: `Link Langsung` (URL review asli di QR) dan `Cetak Kosong` (QR pola `…/r/G-XXXXXX`, aktivasi via KV, lihat ADR-0005).

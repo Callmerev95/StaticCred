@@ -26,7 +26,7 @@ Single-context. Baca file ini + `docs/adr/` sebelum mengerjakan kode.
 - **Varian ukuran**: `pvc-h` (85.6×54), `pvc-v` (54×85.6), `a6` (105×148), `a7` (74×105), `stiker-70` (70×70). Semua dalam mm.
 
 ## Aturan domain
-- Backend terbatas di satu jalur: generator, preview, dan export tetap tanpa backend (render client-side, tanpa fetch validasi). Penyimpanan hanya Vercel KV untuk aktivasi Cetak Kosong (ADR-0005): mapping serial → {nama, url, pinHash}, counter scan, dan rate-limit. Tidak ada auth, tidak ada database lain.
+- Backend terbatas di satu jalur: generator, preview, dan export tetap tanpa backend (render client-side, tanpa fetch validasi). Penyimpanan hanya Vercel KV untuk aktivasi Cetak Kosong (ADR-0005): mapping serial → {nama, url, pinHash}, counter scan, dan rate-limit. Daftar kartu `/cards` di balik PIN admin global (ADR-0006). Tidak ada database lain.
 - Serial yang dibuat di form langsung didaftarkan ke KV berstatus Pending (termasuk batch + label), tetapi aktivasi tetap lazy: serial valid di luar sistem tetap bisa diaktifkan. Race first-wins.
 - Satu sumber render: `drawCard(ctx, opts)` dipakai preview dan export. Jangan duplikasi logika gambar.
 - Pixel math: `px = round(mm × 300 / 25.4)`. Tabel resmi ada di `PRD.md §3`.

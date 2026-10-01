@@ -10,5 +10,5 @@ export function siteUrl(): string {
   const raw = (process.env.NEXT_PUBLIC_APP_URL ?? "").trim();
   if (raw) return raw.replace(/\/+$/, "");
   if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
-  return "https://static-cred.vercel.app";
+  return "https://cards.callmerev.my.id";
 }
