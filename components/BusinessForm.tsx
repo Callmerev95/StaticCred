@@ -41,7 +41,7 @@ function FieldLabel({
   aside?: React.ReactNode;
 }) {
   return (
-    <div className="mb-2 flex items-baseline justify-between gap-3">
+    <div className="mb-2 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-2">
       <label
         htmlFor={htmlFor}
         className="shrink-0 font-mono text-xs font-medium tracking-widest text-ink whitespace-nowrap uppercase"
