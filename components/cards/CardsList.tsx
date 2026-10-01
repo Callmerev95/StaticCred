@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { formatCardDate } from "@/lib/cards-format";
 import type { ListedCard } from "@/lib/store";
+import QrOverlay from "./QrOverlay";
 
 type Filter = "all" | "active" | "pending";
 
@@ -45,6 +46,7 @@ function CopyButton({ text }: { text: string }) {
 
 function CardRow({ card, base }: { card: ListedCard; base: string }) {
   const active = card.status === "active";
+  const [qrOpen, setQrOpen] = useState(false);
   return (
     <li className="rounded-3xl border border-hairline bg-paper p-5 shadow-sm">
       <div className="flex flex-wrap items-center justify-between gap-2">
@@ -87,12 +89,20 @@ function CardRow({ card, base }: { card: ListedCard; base: string }) {
         {card.scan} scan · Dibuat: {formatCardDate(card.createdAt)}
       </p>
       <div className="mt-4 flex flex-wrap gap-2">
-        <Link
-          href={`/r/${card.id}`}
+        <button
+          type="button"
+          onClick={() => setQrOpen(true)}
           className="inline-flex min-h-9 items-center rounded-full border border-hairline px-3 text-xs font-semibold text-ink transition-colors hover:bg-surface-alt focus-visible:ring-2 focus-visible:ring-ink focus-visible:outline-none"
         >
           Lihat QR
-        </Link>
+        </button>
+        {qrOpen && (
+          <QrOverlay
+            card={card}
+            payload={`${base}/r/${card.id}`}
+            onClose={() => setQrOpen(false)}
+          />
+        )}
         {active ? (
           <>
             <a
