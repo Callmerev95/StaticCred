@@ -2,6 +2,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { formatCardDate } from "@/lib/cards-format";
 import type { ListedCard } from "@/lib/store";
@@ -144,6 +145,7 @@ export default function CardsList({
   base: string;
 }) {
   const [filter, setFilter] = useState<Filter>("all");
+  const router = useRouter();
   const counts = useMemo(
     () => ({
       all: cards.length,
@@ -179,7 +181,14 @@ export default function CardsList({
             Daftar kartu Google Review yang sudah dibuat.
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() => router.back()}
+            className="inline-flex min-h-11 items-center rounded-full border border-hairline px-5 text-sm font-semibold text-ink transition-colors hover:bg-surface-alt focus-visible:ring-2 focus-visible:ring-ink focus-visible:outline-none"
+          >
+            Kembali
+          </button>
           <Link
             href="/"
             className="inline-flex min-h-11 items-center rounded-full border border-hairline px-5 text-sm font-semibold text-ink transition-colors hover:bg-surface-alt focus-visible:ring-2 focus-visible:ring-ink focus-visible:outline-none"

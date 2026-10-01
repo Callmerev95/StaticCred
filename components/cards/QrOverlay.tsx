@@ -1,10 +1,10 @@
 // Overlay QR per kartu di /cards: backdrop blur, dialog terpusat berisi
-// QR + tombol Unduh QR. QR digambar client-side via qrcode-generator
+// QR + tombol Salin Link. QR digambar client-side via qrcode-generator
 // (dep yang sama dengan render kartu cetak). Tutup via tombol,
 // klik backdrop, atau Escape.
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import qrcode from "qrcode-generator";
 import type { ListedCard } from "@/lib/store";
 
@@ -51,6 +51,7 @@ export default function QrOverlay({
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     if (canvasRef.current) drawQr(canvasRef.current, payload);
@@ -70,13 +71,14 @@ export default function QrOverlay({
     };
   }, [onClose]);
 
-  function download() {
-    const url = canvasRef.current?.toDataURL("image/png");
-    if (!url) return;
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `QR-${card.id}.png`;
-    a.click();
+  async function copyLink() {
+    try {
+      await navigator.clipboard.writeText(payload);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      setCopied(false);
+    }
   }
 
   return (
@@ -110,10 +112,10 @@ export default function QrOverlay({
         <div className="mt-5 grid gap-2">
           <button
             type="button"
-            onClick={download}
+            onClick={copyLink}
             className="inline-flex min-h-11 w-full items-center justify-center rounded-full bg-ink px-5 text-sm font-semibold text-paper focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2 focus-visible:outline-none"
           >
-            Unduh QR
+            {copied ? "Tersalin" : "Salin Link"}
           </button>
           <button
             ref={closeRef}

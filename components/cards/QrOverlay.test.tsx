@@ -35,4 +35,25 @@ describe("QrOverlay", () => {
     fireEvent.keyDown(document, { key: "Escape" });
     expect(onClose).toHaveBeenCalledTimes(1);
   });
+
+  it("Salin Link menyalin payload, tanpa tombol unduh", async () => {
+    const onClose = vi.fn();
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.assign(navigator, { clipboard: { writeText } });
+    render(
+      <QrOverlay card={card} payload="https://app/r/G-ABCDEF" onClose={onClose} />,
+    );
+    expect(
+      screen.queryByRole("button", { name: /unduh/i }),
+    ).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Salin Link" }));
+    await vi.waitFor(() =>
+      expect(writeText).toHaveBeenCalledWith("https://app/r/G-ABCDEF"),
+    );
+    await vi.waitFor(() =>
+      expect(
+        screen.getByRole("button", { name: "Tersalin" }),
+      ).toBeDefined(),
+    );
+  });
 });
