@@ -18,6 +18,7 @@ export const QR_QUIET_MODULES = 4;
 export const QR_VERSION_WARN = 10;
 export const CARD_RADIUS_FACTOR = 0.07;
 export const PORTRAIT_QR_WIDTH_FACTOR = 0.72;
+export const HEADER_SCALE = 1.08;
 
 export interface CardTexts {
   title?: string;
@@ -768,7 +769,10 @@ function drawHeader(
   showNfc: boolean,
 ): HeaderGeom {
   const { u, pad, ty, left, right } = f;
-  const chipD = Math.round(u * 5.4);
+  // Unit header 8% lebih besar dari u agar chip, font, ikon, dan pill
+  // tampil sedikit lebih besar merata di semua ukuran kartu.
+  const hu = u * HEADER_SCALE;
+  const chipD = Math.round(hu * 5.4);
   const headerCy = ty + pad + chipD / 2;
   const chipX = left;
   const chipY = Math.round(headerCy - chipD / 2);
@@ -776,45 +780,45 @@ function drawHeader(
   ctx.save();
   if (theme.chipShadow) {
     ctx.shadowColor = "rgba(17,23,41,0.14)";
-    ctx.shadowBlur = Math.round(u * 1.2);
-    ctx.shadowOffsetY = Math.round(u * 0.4);
+    ctx.shadowBlur = Math.round(hu * 1.2);
+    ctx.shadowOffsetY = Math.round(hu * 0.4);
   }
   ctx.fillStyle = theme.chipBg;
   fillRoundRect(ctx, chipX, chipY, chipD, chipD, chipR);
   ctx.restore();
   if (theme.chipBorder) {
     ctx.strokeStyle = theme.chipBorder;
-    ctx.lineWidth = Math.max(1, Math.round(u * 0.14));
+    ctx.lineWidth = Math.max(1, Math.round(hu * 0.14));
     strokeRoundRect(ctx, chipX, chipY, chipD, chipD, chipR);
   }
   drawGoogleG(ctx, chipX + chipD / 2, headerCy, chipD * 0.305);
 
   // Geometri pill NFC dulu: teks kiri memakai tepi kirinya sebagai batas.
-  const fsNfc = Math.round(u * 1.4);
+  const fsNfc = Math.round(hu * 1.4);
   setFont(ctx, 700, fsNfc);
-  const iconD = Math.round(u * 1.7);
-  const gapIcon = Math.round(u * 0.55);
-  const pillPadX = Math.round(u * 1.9);
+  const iconD = Math.round(hu * 1.7);
+  const gapIcon = Math.round(hu * 0.55);
+  const pillPadX = Math.round(hu * 1.9);
   const nfcLabel = "TAP NFC";
   const pillW = Math.round(iconD + gapIcon + ctx.measureText(nfcLabel).width + pillPadX * 2);
-  const pillH = Math.round(u * 4.1);
+  const pillH = Math.round(hu * 4.1);
   const pillX = right - pillW;
-  const contentRight = showNfc ? pillX - Math.round(u * 1.5) : right;
+  const contentRight = showNfc ? pillX - Math.round(hu * 1.5) : right;
 
-  const fs1 = Math.round(u * 1.8);
-  const fs2 = Math.round(u * 2.0);
-  const lineGap = Math.round(u * 2.2);
+  const fs1 = Math.round(hu * 1.8);
+  const fs2 = Math.round(hu * 2.0);
+  const lineGap = Math.round(hu * 2.2);
   const line1Cy = headerCy - lineGap / 2;
   const line2Cy = headerCy + lineGap / 2;
-  const textX = chipX + chipD + Math.round(u * 1.5);
+  const textX = chipX + chipD + Math.round(hu * 1.5);
   ctx.textAlign = "left";
   ctx.textBaseline = "middle";
 
   const checkD = Math.round(fs1 * 1.05);
-  const checkGap = Math.round(u * 0.7);
+  const checkGap = Math.round(hu * 0.7);
   const line1Room = Math.max(
     10,
-    contentRight - textX - checkD - checkGap - Math.round(u * 1),
+    contentRight - textX - checkD - checkGap - Math.round(hu * 1),
   );
   setFont(ctx, 600, fs1);
   ctx.fillStyle = theme.verified;
@@ -842,6 +846,11 @@ function drawHeader(
   if (showNfc) {
     ctx.fillStyle = theme.pillBg;
     fillRoundRect(ctx, pillX, Math.round(headerCy - pillH / 2), pillW, pillH, pillH / 2);
+    if (theme.pillBorder) {
+      ctx.strokeStyle = theme.pillBorder;
+      ctx.lineWidth = Math.max(1, Math.round(hu * 0.14));
+      strokeRoundRect(ctx, pillX, Math.round(headerCy - pillH / 2), pillW, pillH, pillH / 2);
+    }
     drawContactlessGlyph(
       ctx,
       pillX + pillPadX + iconD / 2,
@@ -854,9 +863,9 @@ function drawHeader(
     ctx.fillText(nfcLabel, pillX + pillPadX + iconD + gapIcon, headerCy);
   }
 
-  const headerBottom = Math.round(ty + pad + chipD + u * 2.9);
+  const headerBottom = Math.round(ty + pad + chipD + hu * 2.9);
   ctx.strokeStyle = theme.hairline;
-  ctx.lineWidth = Math.max(1, Math.round(u * 0.16));
+  ctx.lineWidth = Math.max(1, Math.round(hu * 0.16));
   ctx.beginPath();
   ctx.moveTo(left, headerBottom);
   ctx.lineTo(right, headerBottom);

@@ -10,6 +10,7 @@ import {
   drawCard,
   drawGoogleG,
   getQrInfo,
+  HEADER_SCALE,
   qrBoxLayout,
   qrCardLayout,
   QR_QUIET_MODULES,
@@ -210,6 +211,13 @@ describe("kontras Tema Kartu (acceptance PRD)", () => {
       expect(contrastRatio(t.qrCardBorder, t.bg)).toBeGreaterThanOrEqual(3);
     }
   });
+
+  it("border pill TAP NFC lolos kontras non-teks ≥3:1 di kedua sisinya", () => {
+    const g = CARD_THEMES.google;
+    expect(g.pillBorder).toBeTruthy();
+    expect(contrastRatio(g.pillBorder as string, g.bg)).toBeGreaterThanOrEqual(3);
+    expect(contrastRatio(g.pillBorder as string, g.pillBg)).toBeGreaterThanOrEqual(3);
+  });
 });
 
 describe("getQrInfo", () => {
@@ -250,7 +258,7 @@ describe("qrBoxLayout", () => {
     const u = 1011 / 100;
     const pad = Math.round(1011 * 0.055);
     const right = 1011 - pad;
-    const headerBottom = Math.round(pad + Math.round(u * 5.4) + u * 2.9);
+    const headerBottom = Math.round(pad + Math.round(u * HEADER_SCALE * 5.4) + u * HEADER_SCALE * 2.9);
     const midTop = headerBottom + Math.round(u * 2);
     const footerTop = Math.round(638 - pad - u * 4.1);
     const midBottom = footerTop - Math.round(u * 1.5);
@@ -331,7 +339,7 @@ describe("QR center dalam pembungkus", () => {
     const u = 1011 / 100;
     const pad = Math.round(1011 * 0.055);
     const right = 1011 - pad;
-    const headerBottom = Math.round(pad + Math.round(u * 5.4) + u * 2.9);
+    const headerBottom = Math.round(pad + Math.round(u * HEADER_SCALE * 5.4) + u * HEADER_SCALE * 2.9);
     const midTop = headerBottom + Math.round(u * 2);
     const footerTop = Math.round(638 - pad - u * 4.1);
     const midBottom = footerTop - Math.round(u * 1.5);
@@ -807,5 +815,58 @@ describe("qrCardLayout", () => {
     // Tinggi juga dijepit zona avail.
     const tall = qrCardLayout(45, 5000, 300, 10, true);
     expect(tall.cardH).toBeLessThanOrEqual(300);
+  });
+});
+
+describe("header kartu", () => {
+  it("skala header 8%: chip = round(hu × 5.4) dengan hu = u × HEADER_SCALE", () => {
+    const { ctx, calls } = createMockCtx();
+    drawCard(ctx, BASE_OPTS);
+    const traces = collectTraces(calls);
+    const u = 1011 / 100;
+    const hu = u * HEADER_SCALE;
+    const pad = Math.round(1011 * 0.055);
+    const chipD = Math.round(hu * 5.4);
+    expect(chipD).toBe(59);
+    const headerCy = pad + chipD / 2;
+    const chipY = Math.round(headerCy - chipD / 2);
+    // Chip: fill round-rect selebar chipD yang atasnya di chipY.
+    const chip = traces.find(
+      (t) =>
+        t.action === "fill" &&
+        t.arcTos.length === 4 &&
+        t.arcTos[0][0] - (t.moveTo[0] - t.arcTos[0][4]) === chipD &&
+        t.moveTo[1] === chipY,
+    );
+    expect(chip).toBeDefined();
+  });
+
+  it("pill NFC tema google punya border pembungkus, dark tidak", () => {
+    const u = 1011 / 100;
+    const hu = u * HEADER_SCALE;
+    // Dimensi pill dari rumus yang sama dengan drawHeader; mock ctx
+    // mengukur teks 8 px per karakter ("TAP NFC" = 7).
+    const pillW = Math.round(
+      Math.round(hu * 1.7) + Math.round(hu * 0.55) + 7 * 8 + Math.round(hu * 1.9) * 2,
+    );
+    const pillH = Math.round(hu * 4.1);
+    expect(pillW).toBe(123);
+    expect(pillH).toBe(45);
+    for (const cardTheme of ["dark", "google"] as const) {
+      const { ctx, calls } = createMockCtx();
+      drawCard(ctx, { ...BASE_OPTS, cardTheme });
+      const traces = collectTraces(calls);
+      const same = (t: { moveTo: number[]; arcTos: number[][] }) =>
+        t.arcTos[0][0] - (t.moveTo[0] - t.arcTos[0][4]) === pillW &&
+        t.arcTos[1][1] - t.moveTo[1] === pillH;
+      const fills = traces.filter((t) => t.action === "fill" && same(t));
+      const strokes = traces.filter((t) => t.action === "stroke" && same(t));
+      expect(fills).toHaveLength(1);
+      if (cardTheme === "google") {
+        expect(strokes).toHaveLength(1);
+      } else {
+        expect(strokes).toHaveLength(0);
+      }
+    }
   });
 });

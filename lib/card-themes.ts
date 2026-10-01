@@ -24,6 +24,7 @@ export interface CardTheme {
   chipShadow: boolean;
   pillBg: string;
   pillFg: string;
+  pillBorder: string | null;
   nfcIcon: string;
   qrCardBg: string;
   qrCardBorder: string | null;
@@ -67,6 +68,7 @@ export const CARD_THEMES: Record<CardThemeId, CardTheme> = {
     chipShadow: false,
     pillBg: "#1F2839",
     pillFg: "#E9EEF7",
+    pillBorder: null,
     nfcIcon: "#70A3F3",
     qrCardBg: "#111729",
     // Garis tepian pembungkus QR: 3,3:1 vs qrCardBg (WCAG 1.4.11 ≥3:1).
@@ -98,8 +100,10 @@ export const CARD_THEMES: Record<CardThemeId, CardTheme> = {
     chipBg: "#FFFFFF",
     chipBorder: "rgba(17,23,41,0.06)",
     chipShadow: true,
-    pillBg: "#F0F6FE",
+    pillBg: "#D8E6FD",
     pillFg: "#2A4DD0",
+    // Border pembungkus pill: 4,77 vs bg kartu, 3,95 vs bg pill (WCAG 1.4.11 ≥3:1).
+    pillBorder: "#456FB8",
     nfcIcon: "#2A4DD0",
     qrCardBg: "#FFFFFF",
     qrCardBorder: null,
