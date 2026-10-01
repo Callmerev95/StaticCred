@@ -12,7 +12,8 @@ Single-context. Baca file ini + `docs/adr/` sebelum mengerjakan kode.
 - **Halaman Aktivasi**: `/r/<serial>/activate`, form yang dilihat pembeli saat scan pertama. Sukses → halaman "Kartu Berhasil Diaktifkan".
 - **Interstitial**: `/r/<serial>` saat kartu aktif: konfirmasi nama toko + tombol "Buka Ulasan" + "Ganti link". Scan dihitung sekali di sini.
 - **Tujuan Tulis Ulasan**: URL kanonik `search.google.com/local/writereview?placeid=…` (form tulis ulasan di Google Search, bukan Google Maps). Link yang memuat place ID `ChIJ…` otomatis di-rewrite ke tujuan ini saat dibaca maupun ditulis (`lib/review-url.ts`); link Google Maps tanpa place ID di-resolve otomatis via proxy (`lib/resolve-review.ts`, hint live 700 ms), gagal resolve → link dipakai apa adanya. Istilah lain: "generate writereview".
-- **Kelola Kartu**: `/r/<serial>/manage`, gerbang PIN untuk mengubah nama/link/PIN setelah aktif. Bukan dashboard semua kartu.
+- **Kelola Kartu**: `/r/<serial>/manage`, gerbang PIN untuk mengubah nama/link/PIN setelah aktif. Bukan daftar semua kartu.
+- **Daftar Kartu**: `/cards`, statistik (total terbit, aktif, pending, total scan) + daftar per serial di balik PIN admin global (`ADMIN_PIN`, ADR-0006). Bukan halaman publik.
 - **PIN Keamanan**: 4–8 angka, hash di KV, kredensial pemilik kartu. Tanpa pemulihan: lupa PIN = link tak bisa diubah.
 - **Batch**: kelompok serial yang dibuat bersamaan, berlabel `BATCH-YYYY-MM-DD`, ikut diekspor ke CSV.
 - **Tema Aplikasi**: `light` / `dark` untuk chrome app (form, panel, tombol). Default ikut OS, toggle di header, persist `localStorage`. Tidak boleh memengaruhi satu piksel pun output cetak. Jangan sebut "darkmode" satu kata, selalu "Tema Aplikasi".

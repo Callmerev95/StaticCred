@@ -3,6 +3,7 @@ import { hashPin } from "./pin";
 import {
   claimCard,
   getActiveCard,
+  listCards,
   rateLimited,
   registerSerials,
   verifyCardPin,
@@ -18,7 +19,7 @@ function setEnv() {
 function mockFetch(handler: (cmd: Cmd, cmds: Cmd[]) => unknown) {
   globalThis.fetch = (async (_url: unknown, init?: { body?: unknown }) => {
     const body = JSON.parse(String(init?.body)) as Cmd | Cmd[];
-    if (Array.isArray(body[0])) {
+    if (body.length === 0 || Array.isArray(body[0])) {
       const items = (body as Cmd[]).map((cmd) => ({
         result: handler(cmd, body as Cmd[]),
       }));
@@ -198,5 +199,96 @@ describe("verifyCardPin", () => {
       return 1;
     });
     expect(await verifyCardPin(ID, "0000")).toBe("wrong");
+  });
+});
+
+describe("listCards", () => {
+  const active = (id: string) =>
+    JSON.stringify({
+      v: 1,
+      nama: `Toko ${id}`,
+      url: "https://g.page/r/x",
+      pinHash: "h",
+      createdAt: "2026-09-01T00:00:00.000Z",
+      updatedAt: "2026-09-01T00:00:00.000Z",
+    });
+  const pending = JSON.stringify({
+    v: 1,
+    batch: "BATCH-2026-09-27",
+    createdAt: "2026-09-27T00:00:00.000Z",
+  });
+
+  // Keyspace fiktif: G-AAAAAA aktif+pending (aktif menang),
+  // G-BBBBBB pending, G-CCCCCC aktif.
+  function mockKv() {
+    const keys: Record<string, string> = {
+      "card:G-AAAAAA": active("G-AAAAAA"),
+      "pend:G-AAAAAA": pending,
+      "pend:G-BBBBBB": pending,
+      "card:G-CCCCCC": active("G-CCCCCC"),
+      "scan:G-AAAAAA": "3",
+      "scan:G-CCCCCC": "bukan-angka",
+    };
+    const seen: string[] = [];
+    mockFetch((cmd) => {
+      if (cmd[0] === "SCAN") {
+        const pattern = String(cmd[3]).replace("*", "");
+        const pages: Record<string, string[][]> = {
+          "card:": [["card:G-AAAAAA"], ["card:G-CCCCCC"]],
+          "pend:": [["pend:G-AAAAAA", "pend:G-BBBBBB"]],
+        };
+        seen.push(`scan:${pattern}`);
+        const pagesFor = pages[pattern] ?? [[]];
+        const idx = seen.filter((s) => s === `scan:${pattern}`).length - 1;
+        const page = pagesFor[Math.min(idx, pagesFor.length - 1)];
+        const next = idx + 1 >= pagesFor.length ? "0" : String(idx + 1);
+        return [next, page];
+      }
+      if (cmd[0] === "GET") return keys[String(cmd[1])] ?? null;
+      return null;
+    });
+  }
+
+  it("null tanpa KV", async () => {
+    mockFetch(() => null);
+    expect(await listCards()).toBeNull();
+  });
+
+  it("SCAN cursor bertahap, aktif menang, scan dijumlahkan", async () => {
+    setEnv();
+    mockKv();
+    const cards = await listCards();
+    expect(cards).toHaveLength(3);
+    expect(cards!.map((c) => [c.id, c.status])).toEqual([
+      ["G-AAAAAA", "active"],
+      ["G-BBBBBB", "pending"],
+      ["G-CCCCCC", "active"],
+    ]);
+    expect(cards![0].nama).toBe("Toko G-AAAAAA");
+    expect(cards![0].scan).toBe(3);
+    expect(cards![1].batch).toBe("BATCH-2026-09-27");
+    expect(cards![1].scan).toBe(0);
+    expect(cards![2].scan).toBe(0);
+  });
+
+  it("key liar berformat salah dilewati", async () => {
+    setEnv();
+    mockFetch((cmd) => {
+      if (cmd[0] === "SCAN") return ["0", ["card:bukan-serial"]];
+      return null;
+    });
+    expect(await listCards()).toEqual([]);
+  });
+
+  it("database kosong → daftar kosong (pipeline tanpa perintah)", async () => {
+    setEnv();
+    const seen: string[] = [];
+    mockFetch((cmd) => {
+      if (cmd[0] === "SCAN") return ["0", []];
+      seen.push(cmd.join(" "));
+      return null;
+    });
+    expect(await listCards()).toEqual([]);
+    expect(seen).toEqual([]);
   });
 });

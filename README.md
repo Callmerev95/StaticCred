@@ -73,5 +73,5 @@ Tiket hidup di GitHub Issues (`Callmerev95/StaticCred`), label triase: `needs-tr
 
 ## Batasan V1
 - Tanpa env KV, route `/r/*` menampilkan kondisi "belum aktif" yang jujur (tanpa form aktivasi): bukan 404.
-- Dashboard `/cards` tidak ada di V1; cek status per kartu via `/r/[id]/manage`.
+- Dashboard `/cards` hanya di balik PIN admin (`ADMIN_PIN`); tanpa PIN/KV tampil kondisi jujur. Versi publik tetap tidak ada; cek status per kartu via `/r/[id]/manage`.
 - Validasi link bersifat ringan (paste bebas, tanpa fetch API Google/TripAdvisor); link tujuan tetap divalidasi pola server-side saat aktivasi.

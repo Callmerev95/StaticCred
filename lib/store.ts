@@ -2,7 +2,8 @@
 // Key: card:<id> aktif, pend:<id> registrasi, scan:<id> hitungan, rl:* rate-limit,
 // fp:<id>/<lk:<id> kegagalan PIN.
 
-import { kvAvailable, kvDel, kvExecAll, kvGet, kvIncr, kvSet, kvExpire } from "./kv";
+import { kvAvailable, kvDel, kvExecAll, kvGet, kvIncr, kvScan, kvSet, kvExpire } from "./kv";
+import { isValidCardId } from "./qr";
 import { verifyPin } from "./pin";
 
 export interface ActiveCard {
@@ -111,6 +112,68 @@ export async function getScanCount(id: string): Promise<number> {
   const raw = await kvGet(scanKey(id));
   const n = Number(raw ?? 0);
   return Number.isFinite(n) ? n : 0;
+}
+
+export interface ListedCard {
+  id: string;
+  status: "active" | "pending";
+  nama?: string;
+  url?: string;
+  batch?: string;
+  createdAt?: string;
+  scan: number;
+}
+
+// Daftar semua kartu untuk /cards (server-side saja). Aktif menang atas
+// pending bila keduanya ada (pend tidak dihapus saat klaim, lihat claimCard).
+// null bila KV mati. Serial tak valid dilewati agar key liar tak bocor ke UI.
+export async function listCards(): Promise<ListedCard[] | null> {
+  if (!kvAvailable()) return null;
+  const activeKeys = await kvScan("card:*");
+  const pendingKeys = await kvScan("pend:*");
+  const ids = new Set<string>();
+  for (const key of [...activeKeys, ...pendingKeys]) {
+    const id = key.includes(":") ? key.split(":").slice(1).join(":") : "";
+    if (isValidCardId(id)) ids.add(id);
+  }
+  const sorted = [...ids].sort();
+  const payloads = await kvExecAll(
+    sorted.map((id) => ["GET", `card:${id}`]),
+  );
+  const pendings = await kvExecAll(
+    sorted.map((id) => ["GET", `pend:${id}`]),
+  );
+  const scans = await kvExecAll(sorted.map((id) => ["GET", `scan:${id}`]));
+  return sorted.map((id, i) => {
+    const card = parse<ActiveCard>(
+      typeof payloads[i] === "string" ? payloads[i] : null,
+    );
+    const pending = parse<PendingRecord>(
+      typeof pendings[i] === "string" ? pendings[i] : null,
+    );
+    const rawScan = scans[i];
+    const scan =
+      typeof rawScan === "string" && rawScan !== ""
+        ? Number(rawScan)
+        : 0;
+    if (card) {
+      return {
+        id,
+        status: "active" as const,
+        nama: card.nama,
+        url: card.url,
+        createdAt: card.createdAt,
+        scan: Number.isFinite(scan) ? scan : 0,
+      };
+    }
+    return {
+      id,
+      status: "pending" as const,
+      batch: pending?.batch,
+      createdAt: pending?.createdAt,
+      scan: Number.isFinite(scan) ? scan : 0,
+    };
+  });
 }
 
 export async function recordScan(id: string): Promise<number | null> {

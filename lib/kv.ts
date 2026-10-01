@@ -64,12 +64,37 @@ export async function kvDel(key: string): Promise<void> {
   await exec<number>(["DEL", key]);
 }
 
+// SCAN keyspace per pola (daftar serial untuk /cards). Cursor bertahap
+// agar aman di puluhan ribu key; hanya dipakai server-side.
+export async function kvScan(pattern: string): Promise<string[]> {
+  const env = readEnv();
+  if (!env) return [];
+  const keys: string[] = [];
+  let cursor = "0";
+  do {
+    const res = await fetch(env.url, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${env.token}` },
+      body: JSON.stringify(["SCAN", cursor, "MATCH", pattern, "COUNT", 500]),
+      cache: "no-store",
+    });
+    if (!res.ok) throw new Error(`KV ${res.status}: ${await res.text()}`);
+    const data = (await res.json()) as {
+      result: [string, string[]];
+    };
+    const [next, batch] = data.result ?? ["0", []];
+    cursor = String(next);
+    keys.push(...(batch ?? []));
+  } while (cursor !== "0");
+  return keys;
+}
+
 // Pipeline: banyak perintah dalam satu request (mis. daftar 50 serial batch).
 export async function kvExecAll(
   cmds: Array<Array<string | number>>,
 ): Promise<Array<unknown>> {
   const env = readEnv();
-  if (!env) return [];
+  if (!env || cmds.length === 0) return [];
   const res = await fetch(env.url, {
     method: "POST",
     headers: { Authorization: `Bearer ${env.token}` },

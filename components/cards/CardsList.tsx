@@ -1,0 +1,239 @@
+// Daftar kartu /cards (client): statistik, filter, salin link aktivasi.
+"use client";
+
+import Link from "next/link";
+import { useMemo, useState } from "react";
+import { formatCardDate } from "@/lib/cards-format";
+import type { ListedCard } from "@/lib/store";
+
+type Filter = "all" | "active" | "pending";
+
+function Stat({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="rounded-3xl border border-hairline bg-paper p-5 shadow-sm">
+      <p className="font-mono text-xs font-medium tracking-widest text-mid-gray uppercase">
+        {label}
+      </p>
+      <p className="mt-2 text-3xl font-semibold tracking-tight tabular-nums">
+        {value}
+      </p>
+    </div>
+  );
+}
+
+function CopyButton({ text }: { text: string }) {
+  const [copied, setCopied] = useState(false);
+  async function copy() {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      setCopied(false);
+    }
+  }
+  return (
+    <button
+      type="button"
+      onClick={copy}
+      className="inline-flex min-h-9 items-center rounded-full border border-hairline px-3 text-xs font-semibold text-ink transition-colors hover:bg-surface-alt focus-visible:ring-2 focus-visible:ring-ink focus-visible:outline-none"
+    >
+      {copied ? "Tersalin" : "Salin Link"}
+    </button>
+  );
+}
+
+function CardRow({ card, base }: { card: ListedCard; base: string }) {
+  const active = card.status === "active";
+  return (
+    <li className="rounded-3xl border border-hairline bg-paper p-5 shadow-sm">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p className="font-mono text-sm font-semibold">{card.id}</p>
+        <p
+          className={`rounded-full border px-3 py-1 font-mono text-xs ${
+            active
+              ? "border-hairline bg-surface-alt text-ink"
+              : "border-hairline text-mid-gray"
+          }`}
+        >
+          {active ? "AKTIF" : "BELUM AKTIF"}
+        </p>
+      </div>
+      {card.batch && (
+        <p className="mt-2 font-mono text-xs text-mid-gray">{card.batch}</p>
+      )}
+      <h2 className="mt-2 text-xl font-semibold tracking-tight break-words">
+        {active ? card.nama : "(Belum diaktifkan)"}
+      </h2>
+      {active && card.url ? (
+        <p className="mt-2 text-sm break-all">
+          <span className="text-mid-gray">Ulasan: </span>
+          <a
+            href={card.url}
+            target="_blank"
+            rel="noreferrer"
+            className="text-ink underline underline-offset-2 focus-visible:ring-2 focus-visible:ring-ink focus-visible:outline-none"
+          >
+            {card.url}
+          </a>
+        </p>
+      ) : (
+        <p className="mt-2 text-sm break-all">
+          <span className="text-mid-gray">Link aktivasi: </span>
+          <span className="font-mono text-xs">{`${base}/r/${card.id}/activate`}</span>
+        </p>
+      )}
+      <p className="mt-3 font-mono text-xs text-mid-gray">
+        {card.scan} scan · Dibuat: {formatCardDate(card.createdAt)}
+      </p>
+      <div className="mt-4 flex flex-wrap gap-2">
+        <Link
+          href={`/r/${card.id}`}
+          className="inline-flex min-h-9 items-center rounded-full border border-hairline px-3 text-xs font-semibold text-ink transition-colors hover:bg-surface-alt focus-visible:ring-2 focus-visible:ring-ink focus-visible:outline-none"
+        >
+          Lihat QR
+        </Link>
+        {active ? (
+          <>
+            <a
+              href={`/r/${card.id}`}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex min-h-9 items-center rounded-full border border-hairline px-3 text-xs font-semibold text-ink transition-colors hover:bg-surface-alt focus-visible:ring-2 focus-visible:ring-ink focus-visible:outline-none"
+            >
+              Tes Link
+            </a>
+            <Link
+              href={`/r/${card.id}/manage`}
+              className="inline-flex min-h-9 items-center rounded-full border border-hairline px-3 text-xs font-semibold text-ink transition-colors hover:bg-surface-alt focus-visible:ring-2 focus-visible:ring-ink focus-visible:outline-none"
+            >
+              Kelola
+            </Link>
+          </>
+        ) : (
+          <>
+            <Link
+              href={`/r/${card.id}/activate`}
+              className="inline-flex min-h-9 items-center rounded-full border border-hairline px-3 text-xs font-semibold text-ink transition-colors hover:bg-surface-alt focus-visible:ring-2 focus-visible:ring-ink focus-visible:outline-none"
+            >
+              Aktivasi
+            </Link>
+            <CopyButton text={`${base}/r/${card.id}/activate`} />
+          </>
+        )}
+      </div>
+    </li>
+  );
+}
+
+export default function CardsList({
+  cards,
+  base,
+}: {
+  cards: ListedCard[];
+  base: string;
+}) {
+  const [filter, setFilter] = useState<Filter>("all");
+  const counts = useMemo(
+    () => ({
+      all: cards.length,
+      active: cards.filter((c) => c.status === "active").length,
+      pending: cards.filter((c) => c.status !== "active").length,
+    }),
+    [cards],
+  );
+  const totalScan = useMemo(
+    () => cards.reduce((sum, c) => sum + c.scan, 0),
+    [cards],
+  );
+  const shown = cards.filter((c) =>
+    filter === "all" ? true : c.status === filter,
+  );
+  const tabs: Array<{ id: Filter; label: string }> = [
+    { id: "all", label: `Semua (${counts.all})` },
+    { id: "active", label: `Aktif (${counts.active})` },
+    { id: "pending", label: `Pending (${counts.pending})` },
+  ];
+
+  return (
+    <main className="mx-auto flex min-h-screen w-full max-w-3xl flex-col gap-6 px-5 py-10">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <p className="font-mono text-xs font-semibold tracking-widest text-mid-gray uppercase">
+            Area pemilik
+          </p>
+          <h1 className="mt-2 text-3xl font-semibold tracking-tight">
+            Daftar Kartu QR
+          </h1>
+          <p className="mt-2 text-sm text-deep-gray">
+            Daftar kartu Google Review yang sudah dibuat.
+          </p>
+        </div>
+        <div className="flex gap-2">
+          <Link
+            href="/"
+            className="inline-flex min-h-11 items-center rounded-full border border-hairline px-5 text-sm font-semibold text-ink transition-colors hover:bg-surface-alt focus-visible:ring-2 focus-visible:ring-ink focus-visible:outline-none"
+          >
+            Buat Kartu Baru
+          </Link>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <Stat label="Total Kartu" value={counts.all} />
+        <Stat label="Kartu Aktif" value={counts.active} />
+        <Stat label="Pending" value={counts.pending} />
+        <Stat label="Total Scan" value={totalScan} />
+      </div>
+
+      <div
+        role="tablist"
+        aria-label="Filter kartu"
+        className="flex flex-wrap gap-2"
+      >
+        {tabs.map((t) => (
+          <button
+            key={t.id}
+            type="button"
+            role="tab"
+            aria-selected={filter === t.id}
+            onClick={() => setFilter(t.id)}
+            className={`inline-flex min-h-11 items-center rounded-full border px-5 text-sm font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-ink focus-visible:outline-none ${
+              filter === t.id
+                ? "border-ink bg-ink text-paper"
+                : "border-hairline text-deep-gray hover:bg-surface-alt"
+            }`}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {shown.length === 0 ? (
+        <section className="rounded-3xl border border-hairline bg-paper p-8 text-center shadow-sm">
+          <p className="font-semibold">
+            {filter === "all"
+              ? "Belum ada kartu"
+              : filter === "active"
+                ? "Belum ada kartu aktif"
+                : "Tidak ada kartu pending"}
+          </p>
+          <p className="mt-2 text-sm text-deep-gray">
+            {filter === "all"
+              ? "Buat kartu baru untuk melihatnya di sini."
+              : "Ubah filter untuk melihat kartu lain."}
+          </p>
+        </section>
+      ) : (
+        <ul className="flex flex-col gap-4">
+          {shown.map((card) => (
+            <CardRow key={card.id} card={card} base={base} />
+          ))}
+        </ul>
+      )}
+      <p className="text-center font-mono text-xs text-mid-gray">
+        StaticCred · data langsung dari database
+      </p>
+    </main>
+  );
+}
